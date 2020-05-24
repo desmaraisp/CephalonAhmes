@@ -96,7 +96,7 @@ def post_notes(url:str):
 	
 	#title and url
 	title=soup.title.decode_contents().partition("-")[0]
-	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them)"
+	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them. [Here's my github.](https://github.com/CephalonAhmes/CephalonAhmes))"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
 	soup.decompose()
 
