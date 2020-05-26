@@ -51,7 +51,7 @@ UserAgent_object=UserAgent()
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = True #False on release
+DEBUG_subreddit = False #False on release
 
 
 if source_forum_is_updates:
