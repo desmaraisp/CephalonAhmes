@@ -77,12 +77,14 @@ def post_notes(url:str):
 		soup=BeautifulSoup(response.text,'html.parser')
 	div_comment=soup.find('div',{"data-role":"commentContent"})
 	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'})!=[]:
-		div_comment.find('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}).decompose()
+		div_comment.find('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}).decompose() #removes edited tags
 	if div_comment.find_all('br')!=[]:
-		div_comment.find('br').decompose()
+		for i in div_comment.find_all("br"):
+			i.decompose() #removes special lineskips
 
 	htt_conf=htt.HTML2Text()
-	
+	htt_conf.use_automatic_links=True
+	htt_conf.body_width=0
 	
 	#strip superfluous parts/correct mistakes
 	final_post=(htt_conf.handle(div_comment.decode_contents()))
@@ -96,7 +98,7 @@ def post_notes(url:str):
 	
 	#title and url
 	title=soup.title.decode_contents().partition("-")[0]
-	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them. [Here's my github.](https://github.com/CephalonAhmes/CephalonAhmes))"
+	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them. Here's my github: https://github.com/CephalonAhmes/CephalonAhmes)"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
 	soup.decompose()
 
@@ -164,10 +166,8 @@ while True:
 	if url!=last_url:
 		if prints==True:print("posting")
 		time.sleep(5*np.random.random())
-		pre_post=time.time()
 		post_notes(url)
 		last_url=url
 		cloud_cube_object.put(Bucket='cloud-cube',Body=last_url.encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
-		post_post=time.time()
 	if prints==True:print("sleeping")
 	time.sleep(10*np.random.random()+sleeptime)
