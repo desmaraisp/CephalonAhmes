@@ -51,16 +51,16 @@ UserAgent_object=UserAgent()
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = False #False on release
+DEBUG_subreddit = True #False on release
 
 
 if source_forum_is_updates:
-	latest_forum_post_url="https://forums.warframe.com/forum/3-pc-update-notes/"
+	warframe_forum_url="https://forums.warframe.com/forum/3-pc-update-notes/"
 	sort_menu_xpath="/html/body/main/div/div/div/div[2]/div/div[1]/ul/li/a"
 	post_date_sort_xpath="/html/body/ul/li[3]"
 
 else:
-	latest_forum_post_url="https://forums.warframe.com/forum/36-general-discussion/"
+	warframe_forum_url="https://forums.warframe.com/forum/36-general-discussion/"
 	sort_menu_xpath='/html/body/main/div/div/div/div[3]/div/div[1]/ul/li/a'
 	post_date_sort_xpath='/html/body/ul/li[3]'
 
@@ -133,7 +133,7 @@ def post_notes(url:str):
 	
 def fetch_url(forum_url):
 	with webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options) as browser:
-		browser.get(latest_forum_post_url)
+		browser.get(forum_url)
 		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
 		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
 		WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
@@ -158,7 +158,7 @@ while True:
 	last_url=cloud_cube_object.get()['Body'].read().decode('utf-8')
 	if prints==True:print("opening browser")
 	try:
-		url=fetch_url(latest_forum_post_url)
+		url=fetch_url(warframe_forum_url)
 	except TimeoutException:
 		print("Timeout")
 		time.sleep(10*np.random.random()+sleeptime)
