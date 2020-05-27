@@ -11,6 +11,6 @@ print(cloud_cube_object.get()['Body'].read().decode('utf-8'))
 
 
 # last_url='34'
-# cloud_cube_object.put(Bucket='cloud-cube',Body=last_url.encode('utf-8'),Key='ls6cvw1eczmi/last_url_storage.txt')
+# cloud_cube_object.put(Bucket='cloud-cube',Body=last_url.encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 
 
