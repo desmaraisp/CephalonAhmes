@@ -98,6 +98,15 @@ def post_notes(url:str):
 	
 	#title and url
 	title=soup.title.decode_contents().partition("-")[0]
+	if "+" in title:
+		split_title=title.split("+")
+		hotfix_name=split_title[-1]
+		hotfix_split_index=[m.start() for m in re.finditer(hotfix_name.strip(" "), final_post)][0]
+		hotfix_split_index=[m.start() for m in re.finditer("\n", final_post[:hotfix_split_index])][-1]
+		hotfix_notes=final_post[hotfix_split_index:]
+		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
+			submission.reply(hotfix_notes)
+		return
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
 	soup.decompose()
