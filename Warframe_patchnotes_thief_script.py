@@ -6,7 +6,6 @@ import numpy as np
 import time
 import boto3
 import requests
-from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -47,7 +46,6 @@ s3 = session_cloudcube.resource('s3')
 cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 #random request info
-UserAgent_object=UserAgent()
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
@@ -73,7 +71,7 @@ else:
 #%%	
 def post_notes(url:str):
 	with requests.session() as session:
-		response=session.get(url,headers={'user-agent':UserAgent_object.random,'Cache-control':'max-age=45'},timeout=20)
+		response=session.get(url,timeout=20)
 		soup=BeautifulSoup(response.text,'html.parser')
 	div_comment=soup.find('div',{"data-role":"commentContent"})
 	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'})!=[]:
