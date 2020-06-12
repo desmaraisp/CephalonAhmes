@@ -79,6 +79,16 @@ def post_notes(url:str):
 	if div_comment.find_all('br')!=[]:
 		for i in div_comment.find_all("br"):
 			i.decompose() #removes special lineskips
+	if div_comment.find_all('img')!=[]:
+		for i in div_comment.find_all("img"):
+			if i.parent.name=="a":				
+				image_source=i.parent["href"]
+				i.parent["href"]=None
+				i["src"]=image_source
+	if div_comment.find_all('video')!=[]:
+		for i in div_comment.find_all("video"):
+			video_source=i.find("source")["src"]
+			i.find('a')['href']=video_source
 
 	htt_conf=htt.HTML2Text()
 	htt_conf.use_automatic_links=True
@@ -154,9 +164,6 @@ def fetch_url(forum_url):
 	arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 	return(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
 	soup.decompose()
-
-
-	
 
 #%%
 # fetch newwest pc update note post from forum
