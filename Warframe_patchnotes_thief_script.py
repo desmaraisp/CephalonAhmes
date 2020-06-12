@@ -113,7 +113,7 @@ def post_notes(url:str):
 		hotfix_split_index=[m.start() for m in re.finditer("\n", final_post[:hotfix_split_index])][-1]
 		hotfix_notes=final_post[hotfix_split_index:]
 		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
-			submission.reply(hotfix_notes)
+			submission.reply(hotfix_notes).disable_inbox_replies()
 		return
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
@@ -136,11 +136,11 @@ def post_notes(url:str):
 				split_arg=double_skips[np.argmin(np.abs(double_skips-9500))]
 				final_post1,final_post2=final_post2[:split_arg],final_post2[split_arg:]
 				for comment in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
-					comment.reply(final_post1)
+					comment.reply(final_post1).disable_inbox_replies()
 					time.sleep(5)
 			else:
 				for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
-					submission.reply(final_post2)
+					submission.reply(final_post2).disable_inbox_replies()
 				break
 		
 	else:
@@ -164,7 +164,7 @@ def fetch_url(forum_url):
 	arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 	return(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
 	soup.decompose()
-
+	
 #%%
 # fetch newwest pc update note post from forum
 sleeptime=55
