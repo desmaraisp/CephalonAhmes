@@ -45,7 +45,6 @@ session_cloudcube = boto3.Session(
 s3 = session_cloudcube.resource('s3')
 cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
-#random request info
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
@@ -175,13 +174,12 @@ while True:
 		url=fetch_url(warframe_forum_url)
 	except TimeoutException:
 		print("Timeout")
-		time.sleep(10*np.random.random()+sleeptime)
+		time.sleep(sleeptime)
 		continue
 	if url!=last_url:
 		if prints==True:print("posting")
-		time.sleep(5*np.random.random())
 		post_notes(url)
 		last_url=url
 		cloud_cube_object.put(Bucket='cloud-cube',Body=last_url.encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 	if prints==True:print("sleeping")
-	time.sleep(10*np.random.random()+sleeptime)
+	time.sleep(sleeptime)
