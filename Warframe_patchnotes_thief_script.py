@@ -50,16 +50,12 @@ prints=False #False on release
 source_forum_is_updates=True #True on release
 DEBUG_subreddit = False #False on release
 
-
+sort_menu_xpath='//a[@data-role="sortButton"]'
+post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
 if source_forum_is_updates:
-	warframe_forum_url="https://forums.warframe.com/forum/3-pc-update-notes/"
-	sort_menu_xpath="/html/body/main/div/div/div/div[2]/div/div[1]/ul/li/a"
-	post_date_sort_xpath="/html/body/ul/li[3]"
-
+	warframe_forum_url_latest_update="https://forums.warframe.com/forum/3-pc-update-notes/"
 else:
-	warframe_forum_url="https://forums.warframe.com/forum/36-general-discussion/"
-	sort_menu_xpath='/html/body/main/div/div/div/div[3]/div/div[1]/ul/li/a'
-	post_date_sort_xpath='/html/body/ul/li[3]'
+	warframe_forum_url_latest_update="https://forums.warframe.com/forum/36-general-discussion/"
 
 
 if DEBUG_subreddit:
@@ -75,12 +71,14 @@ def post_notes(url:str):
 	div_comment=soup.find('div',{"data-role":"commentContent"})
 	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'})!=[]:
 		div_comment.find('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}).decompose() #removes edited tags
-	if div_comment.find_all('br')!=[]:
-		for i in div_comment.find_all("br"):
-			i.decompose() #removes special lineskips
+	if div_comment.find_all("strong")!=[]:
+		for strong in div_comment.find_all("strong"):
+			if strong.find_all('br')!=[]:
+				for br in strong.find_all('br'):
+					br.decompose()
 	if div_comment.find_all('img')!=[]:
 		for i in div_comment.find_all("img"):
-			if i.parent.name=="a":				
+			if i.parent.name=="a":
 				image_source=i.parent["href"]
 				i.parent["href"]=None
 				i["src"]=image_source
@@ -168,18 +166,21 @@ def fetch_url(forum_url):
 # fetch newwest pc update note post from forum
 sleeptime=55
 while True:
-	last_url=cloud_cube_object.get()['Body'].read().decode('utf-8')
+	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U76')
 	if prints==True:print("opening browser")
 	try:
-		url=fetch_url(warframe_forum_url)
+		url_newest_update=fetch_url(warframe_forum_url_latest_update)
+		url_newest_workshop=fetch_url('https://forums.warframe.com/forum/123-developer-workshop-update-notes/')
+		newest_urls_array=np.array([url_newest_update,url_newest_workshop])
 	except TimeoutException:
 		print("Timeout")
 		time.sleep(sleeptime)
 		continue
-	if url!=last_url:
+	if (newest_urls_array!=last_posted_urls_array).any():
 		if prints==True:print("posting")
-		post_notes(url)
-		last_url=url
-		cloud_cube_object.put(Bucket='cloud-cube',Body=last_url.encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+		posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array)[0][0]
+		post_notes(newest_urls_array[posting_url_index_in_list])
+		last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
+		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(last_posted_urls_array).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 	if prints==True:print("sleeping")
 	time.sleep(sleeptime)
