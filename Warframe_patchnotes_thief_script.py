@@ -74,8 +74,14 @@ def post_notes(url:str):
 	if div_comment.find_all("strong")!=[]:
 		for strong in div_comment.find_all("strong"):
 			if strong.find_all('br')!=[]:
-				for br in strong.find_all('br'):
-					br.decompose()
+				brs_list=[s.extract() for s in strong.find_all('br')]
+				strong_text_list=strong.get_text(strip=True,separator='\n').split('\n')
+				strong.string=strong_text_list[0]
+				for i in np.arange(1,len(strong_text_list)):
+					newstrong=soup.new_tag("strong")
+					newstrong.string=strong_text_list[i]
+					for br in brs_list:strong.parent.strong.insert_after(br)
+					strong.parent.insert(-1,newstrong)
 	if div_comment.find_all('img')!=[]:
 		for i in div_comment.find_all("img"):
 			if i.parent.name=="a":
@@ -145,33 +151,35 @@ def post_notes(url:str):
 		news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), False)
 		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
 	
-def fetch_url(forum_url):
+def fetch_url(forums_url_list):
 	with webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options) as browser:
-		browser.get(forum_url)
-		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
-		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
-		WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
-		soup=BeautifulSoup(browser.page_source,"html.parser")
-	parent_of_time_element_of_thread=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
-	list_of_all_dates=[]
-	for i in parent_of_time_element_of_thread:
-		time_element_of_thread=i.findChild('time',recursive=True)['datetime']
-		date=time_element_of_thread.strip('Z')
-		list_of_all_dates.append(date)
-	arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
-	return(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
+		newest_urls_array=[]
+		for forum_url in forums_url_list:
+			browser.get(forum_url)
+			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
+			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
+			WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
+			soup=BeautifulSoup(browser.page_source,"html.parser")
+			parent_of_time_element_of_thread=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
+			list_of_all_dates=[]
+			for i in parent_of_time_element_of_thread:
+				time_element_of_thread=i.findChild('time',recursive=True)['datetime']
+				date=time_element_of_thread.strip('Z')
+				list_of_all_dates.append(date)
+			arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
+			newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
+	return(np.array(newest_urls_array,dtype='<U255'))
 	soup.decompose()
 	
 #%%
 # fetch newwest pc update note post from forum
-sleeptime=55
+sleeptime=60
 while True:
-	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U76')
+	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
 	if prints==True:print("opening browser")
 	try:
-		url_newest_update=fetch_url(warframe_forum_url_latest_update)
-		url_newest_workshop=fetch_url('https://forums.warframe.com/forum/123-developer-workshop-update-notes/')
-		newest_urls_array=np.array([url_newest_update,url_newest_workshop])
+		forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/2-pc-announcements/','https://forums.warframe.com/forum/170-announcements-events/']
+		newest_urls_array=fetch_url(forums_url_list)
 	except TimeoutException:
 		print("Timeout")
 		time.sleep(sleeptime)
