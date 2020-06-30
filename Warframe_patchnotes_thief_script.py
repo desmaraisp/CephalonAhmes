@@ -168,6 +168,7 @@ def fetch_url(forums_url_list):
 				list_of_all_dates.append(date)
 			arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 			newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
+		browser.quit()
 	return(np.array(newest_urls_array,dtype='<U255'))
 	soup.decompose()
 	
