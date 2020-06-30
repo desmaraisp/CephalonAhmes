@@ -27,6 +27,8 @@ chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-dev-shm-usage')
+browser=webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options)
+
 
 #%%
 #Bot conditions
@@ -152,23 +154,21 @@ def post_notes(url:str):
 		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
 	
 def fetch_url(forums_url_list):
-	with webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options) as browser:
-		newest_urls_array=[]
-		for forum_url in forums_url_list:
-			browser.get(forum_url)
-			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
-			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
-			WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
-			soup=BeautifulSoup(browser.page_source,"html.parser")
-			parent_of_time_element_of_thread=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
-			list_of_all_dates=[]
-			for i in parent_of_time_element_of_thread:
-				time_element_of_thread=i.findChild('time',recursive=True)['datetime']
-				date=time_element_of_thread.strip('Z')
-				list_of_all_dates.append(date)
-			arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
-			newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
-		browser.quit()
+	newest_urls_array=[]
+	for forum_url in forums_url_list:
+		browser.get(forum_url)
+		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
+		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
+		WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
+		soup=BeautifulSoup(browser.page_source,"html.parser")
+		parent_of_time_element_of_thread=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
+		list_of_all_dates=[]
+		for i in parent_of_time_element_of_thread:
+			time_element_of_thread=i.findChild('time',recursive=True)['datetime']
+			date=time_element_of_thread.strip('Z')
+			list_of_all_dates.append(date)
+		arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
+		newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
 	return(np.array(newest_urls_array,dtype='<U255'))
 	soup.decompose()
 	
