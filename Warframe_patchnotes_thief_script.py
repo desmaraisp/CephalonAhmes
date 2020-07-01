@@ -27,6 +27,7 @@ chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-dev-shm-usage')
+#add --single-process  if the problem persists
 browser=webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options)
 
 
@@ -110,7 +111,7 @@ def post_notes(url:str):
 	final_post=final_post.replace("**_**_",'**_')
 	
 	#title and url
-	title=soup.title.decode_contents().partition("-")[0]
+	title=htt_conf.handle(soup.title.decode_contents().partition("-")[0])
 	if "+" in title:
 		split_title=title.split("+")
 		hotfix_name=split_title[-1]
