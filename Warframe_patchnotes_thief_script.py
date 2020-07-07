@@ -180,7 +180,7 @@ while True:
 	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
 	if prints==True:print("opening browser")
 	try:
-		forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/2-pc-announcements/','https://forums.warframe.com/forum/170-announcements-events/']
+		forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
 		newest_urls_array=fetch_url(forums_url_list)
 	except TimeoutException:
 		print("Timeout")
