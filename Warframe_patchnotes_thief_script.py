@@ -109,6 +109,9 @@ def post_notes(url:str):
 				if ps.find_all("br")!=[]:
 					for brs in ps.findChildren("br"):
 						brs.decompose()
+				if ps.find_all("strong")!=[]:
+					for strongs in ps.findChildren("strong"):
+						strongs.unwrap()
 				ps.string=ps.decode_contents().replace("\n",'').replace("\t","")
 				ps.unwrap()
 	final_post=(htt_conf.handle(div_comment.decode_contents()))
