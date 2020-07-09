@@ -103,10 +103,17 @@ def post_notes(url:str):
 	htt_conf.body_width=0
 	
 	#strip superfluous parts/correct mistakes
+	if div_comment.find('table')!=[]:
+		for table in div_comment.find_all('table'):
+			for ps in table.findChildren('p'):
+				if ps.find_all("br")!=[]:
+					for brs in ps.findChildren("br"):
+						brs.decompose()
+				ps.string=ps.decode_contents().replace("\n",'').replace("\t","")
+				ps.unwrap()
 	final_post=(htt_conf.handle(div_comment.decode_contents()))
-	final_post=final_post.replace("\n\n|\n\n",'|')
+	final_post=final_post.replace(" | ",'|')
 	final_post=final_post.replace("![",'[')
-	final_post=final_post.replace("\n--",'--').replace("--  \n",'--')
 	final_post=final_post.replace("<",'')
 	final_post=final_post.replace(">",'') #Might break some things if we ever need < or >.
 	final_post=final_post.replace("_**_**",'_**')
@@ -174,6 +181,7 @@ def fetch_url(forums_url_list):
 		newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
 	return(np.array(newest_urls_array,dtype='<U255'))
 	soup.decompose()
+	
 #%%
 # fetch newwest pc update note post from forum
 sleeptime=60
