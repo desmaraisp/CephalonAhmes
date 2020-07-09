@@ -95,7 +95,9 @@ def post_notes(url:str):
 		for i in div_comment.find_all("video"):
 			video_source=i.find("source")["src"]
 			i.find('a')['href']=video_source
-
+	if div_comment.find_all('iframe')!=[]:
+		for i in div_comment.find_all("iframe"):
+			i.string=i['src'].strip("?do=embed")
 	htt_conf=htt.HTML2Text()
 	htt_conf.use_automatic_links=True
 	htt_conf.body_width=0
@@ -172,7 +174,6 @@ def fetch_url(forums_url_list):
 		newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
 	return(np.array(newest_urls_array,dtype='<U255'))
 	soup.decompose()
-	
 #%%
 # fetch newwest pc update note post from forum
 sleeptime=60
