@@ -190,7 +190,7 @@ def fetch_url(forums_url_list):
 sleeptime=60
 while True:
 	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
-	if prints==True:print("opening browser")
+	if prints:print("opening browser")
 	try:
 		forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
 		newest_urls_array=fetch_url(forums_url_list)
@@ -198,11 +198,13 @@ while True:
 		print("Timeout")
 		time.sleep(sleeptime)
 		continue
-	if (newest_urls_array!=last_posted_urls_array).any():
-		if prints==True:print("posting")
-		posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array)[0][0]
+	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[len(forums_url_list):2*len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[len(forums_url_list)*2:]).any():
+		if prints:print("posting")
+		posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array[:len(forums_url_list)])[0][0]
 		post_notes(newest_urls_array[posting_url_index_in_list])
+		last_posted_urls_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]
+		last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list]
 		last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
 		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(last_posted_urls_array).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
-	if prints==True:print("sleeping")
+	if prints:print("sleeping")
 	time.sleep(sleeptime)
