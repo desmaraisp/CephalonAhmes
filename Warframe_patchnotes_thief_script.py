@@ -51,7 +51,7 @@ cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = True #False on release
+DEBUG_subreddit = False #False on release
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
@@ -198,7 +198,7 @@ while True:
 		print("Timeout")
 		time.sleep(sleeptime)
 		continue
-	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[len(forums_url_list):2*len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[len(forums_url_list)*2:]).any():
+	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (np.tile(newest_urls_array,int(len(last_posted_urls_array)/len(newest_urls_array))-1)!=last_posted_urls_array[len(forums_url_list):]).any():
 		if prints:print("posting")
 		posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array[:len(forums_url_list)])[0][0]
 		post_notes(newest_urls_array[posting_url_index_in_list])
