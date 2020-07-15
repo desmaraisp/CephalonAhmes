@@ -91,13 +91,17 @@ def post_notes(url:str):
 				image_source=i.parent["href"]
 				i.parent["href"]=None
 				i["src"]=image_source
-	if div_comment.find_all('video')!=[]:
-		for i in div_comment.find_all("video"):
-			video_source=i.find("source")["src"]
-			i.find('a')['href']=video_source
-	if div_comment.find_all('iframe')!=[]:
-		for i in div_comment.find_all("iframe"):
+	if div_comment.find_all("source",{"type":"video/mp4"})!=[]:
+		for i in div_comment.find_all("source",{"type":"video/mp4"}):
+			video_source=i["src"]
+			i.parent.find('a')['href']=video_source
+	if div_comment.find_all('iframe',{"class":'ipsEmbed_finishedLoading'})!=[]:
+		for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
 			i.string=i['src'].strip("?do=embed")
+	if div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"})!=[]:
+		for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
+			i.string=i["data-embed-src"]
+
 	htt_conf=htt.HTML2Text()
 	htt_conf.use_automatic_links=True
 	htt_conf.body_width=0
@@ -126,7 +130,7 @@ def post_notes(url:str):
 	title=htt_conf.handle(soup.title.decode_contents().partition("-")[0])
 	if "+" in title:
 		split_title=title.split("+")
-		hotfix_name=split_title[-1]
+		hotfix_name=split_title[-1].strip("\n")
 		hotfix_split_index=[m.start() for m in re.finditer(hotfix_name.strip(" "), final_post)][0]
 		hotfix_split_index=[m.start() for m in re.finditer("\n", final_post[:hotfix_split_index])][-1]
 		hotfix_notes=final_post[hotfix_split_index:]
