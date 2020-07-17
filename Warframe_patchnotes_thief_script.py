@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import os
 
-#%%
+
 
 chrome_options = Options()
 if os.environ.get("GOOGLE_CHROME_BIN")!=None:
@@ -31,7 +31,7 @@ chrome_options.add_argument('--disable-dev-shm-usage')
 browser=webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options)
 
 
-#%%
+
 #Bot conditions
 bot_login=praw.Reddit(client_id = os.environ["praw_client_id"],
 	             client_secret = os.environ["praw_client_secret"],
@@ -66,7 +66,7 @@ if DEBUG_subreddit:
 else:
     SUB = "warframe"
 	
-#%%	
+	
 def post_notes(url:str):
 	with requests.session() as session:
 		response=session.get(url,timeout=20)
@@ -127,7 +127,9 @@ def post_notes(url:str):
 	final_post=final_post.replace("**_**_",'**_')
 	
 	#title and url
-	title=htt_conf.handle(soup.title.decode_contents().partition("-")[0])
+	title_pre_split=soup.title.decode_contents()
+	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
+	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1])
 	if "+" in title:
 		split_title=title.split("+")
 		hotfix_name=split_title[-1].strip("\n")
@@ -190,7 +192,7 @@ def fetch_url(forums_url_list):
 	soup.decompose()
 	
 #%%
-# fetch newwest pc update note post from forum
+# fetch newest pc update note post from forum
 sleeptime=60
 while True:
 	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
