@@ -174,6 +174,7 @@ def post_notes(url:str):
 	
 def fetch_url(forums_url_list):
 	newest_urls_array=[]
+	newest_titles_array=[]
 	for forum_url in forums_url_list:
 		browser.get(forum_url)
 		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
@@ -188,29 +189,35 @@ def fetch_url(forums_url_list):
 			list_of_all_dates.append(date)
 		arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 		newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
-	return(np.array(newest_urls_array,dtype='<U255'))
+		newest_titles_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['title'])
+	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 	
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
 while True:
-	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
+	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[:len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2]
+	last_posted_titles_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2:]
 	if prints:print("opening browser")
 	try:
 		forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
-		newest_urls_array=fetch_url(forums_url_list)
+		newest_urls_array,newest_titles_array=fetch_url(forums_url_list)
 	except TimeoutException:
 		print("Timeout")
 		time.sleep(sleeptime)
 		continue
 	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (np.tile(newest_urls_array,int(len(last_posted_urls_array)/len(newest_urls_array))-1)!=last_posted_urls_array[len(forums_url_list):]).any():
-		if prints:print("posting")
-		posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array[:len(forums_url_list)])[0][0]
-		post_notes(newest_urls_array[posting_url_index_in_list])
-		last_posted_urls_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]
-		last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list]
-		last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
-		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(last_posted_urls_array).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+		if (newest_titles_array!=last_posted_titles_array[:len(forums_url_list)]).any() and (np.tile(newest_titles_array,int(len(last_posted_urls_array)/len(newest_urls_array))-1)!=last_posted_titles_array[len(forums_url_list):]).any():
+			if prints:print("posting")
+			posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array[:len(forums_url_list)])[0][0]
+			post_notes(newest_urls_array[posting_url_index_in_list])
+			last_posted_urls_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]
+			last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list]
+			last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
+			last_posted_titles_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]
+			last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list]
+			last_posted_titles_array[posting_url_index_in_list]=newest_titles_array[posting_url_index_in_list]
+			cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 	if prints:print("sleeping")
 	time.sleep(sleeptime)
