@@ -51,7 +51,7 @@ cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = True #False on release
+DEBUG_subreddit = False #False on release
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
