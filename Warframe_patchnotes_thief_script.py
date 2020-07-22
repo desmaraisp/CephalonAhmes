@@ -38,7 +38,7 @@ bot_login=praw.Reddit(client_id = os.environ["praw_client_id"],
 	             user_agent = 'warframe patch notes retriever bot 0.1',
 	             username = os.environ["praw_username"],
 	             password = os.environ["praw_password"],validate_on_submit=True)
-bot_login.validate_on_submite=True
+bot_login.validate_on_submit=True
 
 #cloudcube login
 session_cloudcube = boto3.Session(
@@ -51,7 +51,7 @@ cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = False #False on release
+DEBUG_subreddit = True #False on release
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
