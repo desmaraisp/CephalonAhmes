@@ -18,8 +18,8 @@ import os
 
 chrome_options = Options()
 if os.environ.get("GOOGLE_CHROME_BIN")!=None:
- 	chromedriverpath=os.environ.get("CHROMEDRIVER_PATH")
- 	chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+	chromedriverpath=os.environ.get("CHROMEDRIVER_PATH")
+	chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 else:
 	chromedriverpath="chromedriver.exe"
 chrome_options.add_argument('--no-sandbox')
@@ -101,6 +101,10 @@ def post_notes(url:str):
 	if div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"})!=[]:
 		for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
 			i.string=i["data-embed-src"]
+	if div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"})!=[]:
+		for i in div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"}):
+			i.string=i["src"]
+
 
 	htt_conf=htt.HTML2Text()
 	htt_conf.use_automatic_links=True
