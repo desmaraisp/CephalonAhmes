@@ -135,13 +135,6 @@ def post_notes(url:str):
 	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
 	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1])
 	if "+" in title:
-		split_title=title.split("+")
-		hotfix_name=split_title[-1].strip("\n")
-		hotfix_split_index=[m.start() for m in re.finditer(hotfix_name.strip(" "), final_post)][0]
-		hotfix_split_index=[m.start() for m in re.finditer("\n", final_post[:hotfix_split_index])][-1]
-		hotfix_notes=final_post[hotfix_split_index:]
-		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
-			submission.reply(hotfix_notes).disable_inbox_replies()
 		return
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
@@ -211,17 +204,33 @@ while True:
 		print("Timeout")
 		time.sleep(sleeptime)
 		continue
-	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (np.tile(newest_urls_array,int(len(last_posted_urls_array)/len(newest_urls_array))-1)!=last_posted_urls_array[len(forums_url_list):]).any():
-		if (newest_titles_array!=last_posted_titles_array[:len(forums_url_list)]).any() and (np.tile(newest_titles_array,int(len(last_posted_urls_array)/len(newest_urls_array))-1)!=last_posted_titles_array[len(forums_url_list):]).any():
-			if prints:print("posting")
-			posting_url_index_in_list=np.where(newest_urls_array!=last_posted_urls_array[:len(forums_url_list)])[0][0]
-			post_notes(newest_urls_array[posting_url_index_in_list])
-			last_posted_urls_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]
-			last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list]
-			last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
-			last_posted_titles_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]
-			last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list]
-			last_posted_titles_array[posting_url_index_in_list]=newest_titles_array[posting_url_index_in_list]
-			cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+	for i in range(len(newest_urls_array)):
+		if newest_urls_array[i] not in last_posted_urls_array:
+			if newest_titles_array[i] not in last_posted_titles_array:
+# =============================================================================
+# 	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[len(forums_url_list):2*len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[2*len(forums_url_list):]).any():
+# 		if (newest_titles_array!=last_posted_titles_array[:len(forums_url_list)]).any() and (newest_titles_array!=last_posted_titles_array[len(forums_url_list):2*len(forums_url_list)]).any() and (newest_titles_array!=last_posted_titles_array[2*len(forums_url_list):]).any():
+# 			if prints:print("posting")
+# 			posting_url_index_in_list=np.where(newest_titles_array!=last_posted_titles_array[:len(forums_url_list)])[0][0]
+# 			print(newest_titles_array[posting_url_index_in_list])
+# 			post_notes(newest_urls_array[posting_url_index_in_list])
+# 			last_posted_urls_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]
+# 			last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list]
+# 			last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
+# 			last_posted_titles_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]
+# 			last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list]
+# 			last_posted_titles_array[posting_url_index_in_list]=newest_titles_array[posting_url_index_in_list]
+# 			cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+# =============================================================================
+				print(newest_titles_array[i])
+				post_notes(newest_urls_array[i])
+				last_posted_urls_array[i+2*len(forums_url_list)]=last_posted_urls_array[i+len(forums_url_list)]
+				last_posted_urls_array[i+len(forums_url_list)]=last_posted_urls_array[i]
+				last_posted_urls_array[i]=newest_urls_array[i]
+				last_posted_titles_array[i+(2*len(forums_url_list))]=last_posted_titles_array[i+len(forums_url_list)]
+				last_posted_titles_array[i+len(forums_url_list)]=last_posted_titles_array[i]
+				last_posted_titles_array[i]=newest_titles_array[i]
+	cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+
 	if prints:print("sleeping")
 	time.sleep(sleeptime)
