@@ -191,7 +191,6 @@ def fetch_url(forums_url_list):
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 
-post_notes("https://forums.warframe.com/topic/1166994-why-do-we-ui-like-we-ui-part-ii/")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
