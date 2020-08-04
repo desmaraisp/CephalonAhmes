@@ -60,13 +60,9 @@ if source_forum_is_updates:
 else:
 	warframe_forum_url_latest_update="https://forums.warframe.com/forum/36-general-discussion/"
 
+SUB={True:"scrappertest",False:"warframe"}
 
-if DEBUG_subreddit:
-    SUB = "scrappertest"
-else:
-    SUB = "warframe"
-	
-	
+
 def post_notes(url:str):
 	with requests.session() as session:
 		response=session.get(url,timeout=20)
@@ -143,17 +139,14 @@ def post_notes(url:str):
 
 	
 	#Splitting and posting	
-# =============================================================================
-# 	flair_template=list(bot_login.subreddit(SUB).flair.link_templates)
-# 	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), False)
-# =============================================================================
-	news_flair_id=None
+	flair_template=list(bot_login.subreddit(SUB[DEBUG_subreddit]).flair.link_templates)
+	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), None)
 	if len(final_post)>37000:
 		double_skips=np.array([m.start() for m in re.finditer('\n\n', final_post)])
 		split_arg=double_skips[np.argmin(np.abs(double_skips-37000))]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
-		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
-		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", subreddit: r/"+SUB)
+		bot_login.subreddit(SUB[DEBUG_subreddit]).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
+		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", subreddit: r/"+SUB[DEBUG_subreddit])
 		time.sleep(5)
 		while True:
 			if len(final_post2)>9500:
@@ -169,8 +162,8 @@ def post_notes(url:str):
 				break
 		
 	else:
-		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
-		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", subreddit: r/"+SUB)
+		bot_login.subreddit(SUB[DEBUG_subreddit]).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
+		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", subreddit: r/"+SUB[DEBUG_subreddit])
 
 	
 def fetch_url(forums_url_list):
@@ -194,6 +187,7 @@ def fetch_url(forums_url_list):
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 
+# post_notes("https://forums.warframe.com/topic/1211148-psa-steel-path-the-derelicts-and-you/")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
