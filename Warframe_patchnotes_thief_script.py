@@ -51,7 +51,7 @@ cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 prints=False #False on release
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = True #False on release
+DEBUG_subreddit = False #False on release
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
@@ -133,7 +133,7 @@ def post_notes(url:str):
 	#title and url
 	title_pre_split=soup.title.decode_contents()
 	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
-	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1])
+	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1]).replace("PSA: ","")
 	if "+" in title:
 		return
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
@@ -190,7 +190,8 @@ def fetch_url(forums_url_list):
 		newest_titles_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['title'])
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
-	
+
+post_notes("https://forums.warframe.com/topic/1166994-why-do-we-ui-like-we-ui-part-ii/")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
