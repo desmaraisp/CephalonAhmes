@@ -153,6 +153,7 @@ def post_notes(url:str):
 		split_arg=double_skips[np.argmin(np.abs(double_skips-37000))]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
 		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
+		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", subreddit: r/"+SUB)
 		time.sleep(5)
 		while True:
 			if len(final_post2)>9500:
@@ -169,6 +170,8 @@ def post_notes(url:str):
 		
 	else:
 		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
+		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", subreddit: r/"+SUB)
+
 	
 def fetch_url(forums_url_list):
 	newest_urls_array=[]
