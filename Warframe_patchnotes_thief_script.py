@@ -143,12 +143,15 @@ def post_notes(url:str):
 
 	
 	#Splitting and posting	
+# =============================================================================
+# 	flair_template=list(bot_login.subreddit(SUB).flair.link_templates)
+# 	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), False)
+# =============================================================================
+	news_flair_id=None
 	if len(final_post)>37000:
 		double_skips=np.array([m.start() for m in re.finditer('\n\n', final_post)])
 		split_arg=double_skips[np.argmin(np.abs(double_skips-37000))]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
-		flair_template=list(bot_login.subreddit(SUB).flair.link_templates)
-		news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), False)
 		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
 		time.sleep(5)
 		while True:
@@ -165,8 +168,6 @@ def post_notes(url:str):
 				break
 		
 	else:
-		flair_template=list(bot_login.subreddit(SUB).flair.link_templates)
-		news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), False)
 		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
 	
 def fetch_url(forums_url_list):
