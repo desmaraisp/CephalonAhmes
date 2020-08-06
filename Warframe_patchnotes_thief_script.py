@@ -140,7 +140,7 @@ def post_notes(url:str):
 	
 	#Splitting and posting	
 	flair_template=list(bot_login.subreddit(SUB[DEBUG_subreddit]).flair.link_templates)
-	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), None)
+	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), next((item.get('id') for item in flair_template if item["text"] == "Discussion"), None))
 	if len(final_post)>37000:
 		double_skips=np.array([m.start() for m in re.finditer('\n\n', final_post)])
 		split_arg=double_skips[np.argmin(np.abs(double_skips-37000))]
@@ -205,21 +205,6 @@ while True:
 	for i in range(len(newest_urls_array)):
 		if newest_urls_array[i] not in last_posted_urls_array:
 			if newest_titles_array[i] not in last_posted_titles_array:
-# =============================================================================
-# 	if (newest_urls_array!=last_posted_urls_array[:len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[len(forums_url_list):2*len(forums_url_list)]).any() and (newest_urls_array!=last_posted_urls_array[2*len(forums_url_list):]).any():
-# 		if (newest_titles_array!=last_posted_titles_array[:len(forums_url_list)]).any() and (newest_titles_array!=last_posted_titles_array[len(forums_url_list):2*len(forums_url_list)]).any() and (newest_titles_array!=last_posted_titles_array[2*len(forums_url_list):]).any():
-# 			if prints:print("posting")
-# 			posting_url_index_in_list=np.where(newest_titles_array!=last_posted_titles_array[:len(forums_url_list)])[0][0]
-# 			print(newest_titles_array[posting_url_index_in_list])
-# 			post_notes(newest_urls_array[posting_url_index_in_list])
-# 			last_posted_urls_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]
-# 			last_posted_urls_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_urls_array[posting_url_index_in_list]
-# 			last_posted_urls_array[posting_url_index_in_list]=newest_urls_array[posting_url_index_in_list]
-# 			last_posted_titles_array[posting_url_index_in_list+2*len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]
-# 			last_posted_titles_array[posting_url_index_in_list+len(forums_url_list)]=last_posted_titles_array[posting_url_index_in_list]
-# 			last_posted_titles_array[posting_url_index_in_list]=newest_titles_array[posting_url_index_in_list]
-# 			cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
-# =============================================================================
 				print(newest_titles_array[i])
 				post_notes(newest_urls_array[i])
 				last_posted_urls_array[i+2*len(forums_url_list)]=last_posted_urls_array[i+len(forums_url_list)]
