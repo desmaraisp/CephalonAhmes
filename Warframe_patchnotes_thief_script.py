@@ -170,20 +170,27 @@ def fetch_url(forums_url_list):
 	newest_urls_array=[]
 	newest_titles_array=[]
 	for forum_url in forums_url_list:
-		browser.get(forum_url)
-		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
-		WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
-		WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
-		soup=BeautifulSoup(browser.page_source,"html.parser")
-		parent_of_time_element_of_thread=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
-		list_of_all_dates=[]
-		for i in parent_of_time_element_of_thread:
-			time_element_of_thread=i.findChild('time',recursive=True)['datetime']
-			date=time_element_of_thread.strip('Z')
-			list_of_all_dates.append(date)
-		arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
-		newest_urls_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['href'])
-		newest_titles_array.append(parent_of_time_element_of_thread[arg_of_most_recent_thread].parent.find('a')['title'])
+		success=True
+		while success:
+			browser.get(forum_url)
+			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
+			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
+			WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
+			soup=BeautifulSoup(browser.page_source,"html.parser")
+			parent_of_time_element_of_thread_list=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
+			list_of_all_dates=[]
+			for i in parent_of_time_element_of_thread_list:
+				time_element_of_thread=i.findChild('time',recursive=True)['datetime']
+				date=time_element_of_thread.strip('Z')
+				list_of_all_dates.append(date)
+			try:
+				arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
+			except ValueError:
+				success=False
+				time.sleep(20)
+				continue
+			newest_urls_array.append(parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')['href'])
+			newest_titles_array.append(parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')['title'])
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 
