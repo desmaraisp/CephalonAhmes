@@ -170,8 +170,8 @@ def fetch_url(forums_url_list):
 	newest_urls_array=[]
 	newest_titles_array=[]
 	for forum_url in forums_url_list:
-		success=True
-		while success:
+		success=False
+		while not success:
 			browser.get(forum_url)
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
@@ -186,9 +186,9 @@ def fetch_url(forums_url_list):
 			try:
 				arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 			except ValueError:
-				success=False
 				time.sleep(20)
 				continue
+			success=True
 			newest_urls_array.append(parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')['href'])
 			newest_titles_array.append(parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')['title'])
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
