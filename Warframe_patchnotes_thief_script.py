@@ -49,7 +49,6 @@ s3 = session_cloudcube.resource('s3')
 cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 
-prints=False #False on release
 source_forum_is_updates=True #True on release
 DEBUG_subreddit = False #False on release
 
@@ -186,6 +185,7 @@ def fetch_url(forums_url_list):
 			try:
 				arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 			except ValueError:
+				print("404")
 				time.sleep(20)
 				continue
 			success=True
@@ -194,6 +194,11 @@ def fetch_url(forums_url_list):
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 
+def sleep_func(sleeptime):
+	duration=2
+	for i in np.arange(0,sleeptime,duration):
+		time.sleep(duration)
+
 # post_notes("https://forums.warframe.com/topic/1211148-psa-steel-path-the-derelicts-and-you/")
 #%%
 # fetch newest pc update note post from forum
@@ -201,13 +206,12 @@ sleeptime=60
 while True:
 	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[:len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2]
 	last_posted_titles_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2:]
-	if prints:print("opening browser")
 	try:
 		forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
 		newest_urls_array,newest_titles_array=fetch_url(forums_url_list)
 	except TimeoutException:
 		print("Timeout")
-		time.sleep(sleeptime)
+		sleep_func(sleeptime)
 		continue
 	for i in range(len(newest_urls_array)):
 		if newest_urls_array[i] not in last_posted_urls_array:
@@ -221,6 +225,4 @@ while True:
 				last_posted_titles_array[i+len(forums_url_list)]=last_posted_titles_array[i]
 				last_posted_titles_array[i]=newest_titles_array[i]
 	cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
-
-	if prints:print("sleeping")
-	time.sleep(sleeptime)
+	sleep_func(sleeptime)
