@@ -129,7 +129,7 @@ def post_notes(url:str):
 	title_pre_split=soup.title.decode_contents()
 	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
 	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1]).replace("PSA: ","")
-	if "+" in title:
+	if "+" in title and "PC Update Notes" in title_pre_split:
 		return
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
