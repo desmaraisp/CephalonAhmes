@@ -195,7 +195,7 @@ def fetch_url(forums_url_list):
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 
-def graceful_exit():
+def graceful_exit(a,b):
 	browser.quit()
 	sys.exit()
 
