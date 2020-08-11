@@ -4,5 +4,4 @@ beautifulsoup4==4.9.0
 numpy==1.18.1
 boto3==1.13.6
 requests==2.23.0
-fake-useragent==0.1.11
 selenium==3.141.0
