@@ -7,16 +7,17 @@ import time
 import boto3
 import requests
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import os
+import signal
+import sys
 
 
 
-chrome_options = Options()
+chrome_options = webdriver.chrome.options.Options()
 if os.environ.get("GOOGLE_CHROME_BIN")!=None:
 	chromedriverpath=os.environ.get("CHROMEDRIVER_PATH")
 	chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
@@ -194,6 +195,10 @@ def fetch_url(forums_url_list):
 	return(np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255'))
 	soup.decompose()
 
+def graceful_exit():
+	browser.quit()
+	sys.exit()
+
 def sleep_func(sleeptime):
 	duration=2
 	for i in np.arange(0,sleeptime,duration):
@@ -203,6 +208,7 @@ def sleep_func(sleeptime):
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
+signal.signal(signal.SIGTERM,graceful_exit)
 while True:
 	last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[:len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2]
 	last_posted_titles_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2:]
