@@ -116,6 +116,9 @@ def post_notes(url:str):
 				if ps.find_all("strong")!=[]:
 					for strongs in ps.findChildren("strong"):
 						strongs.unwrap()
+				if ps.find_all("span")!=[]:
+					for spans in ps.findChildren("span"):
+						spans.unwrap()
 				ps.string=ps.decode_contents().replace("\n",'').replace("\t","")
 				ps.unwrap()
 	final_post=(htt_conf.handle(div_comment.decode_contents()))
@@ -204,7 +207,7 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-# post_notes("https://forums.warframe.com/topic/1211148-psa-steel-path-the-derelicts-and-you/")
+# post_notes("https://forums.warframe.com/topic/1212921-the-helminth-dev-workshop/")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
