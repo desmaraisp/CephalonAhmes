@@ -110,16 +110,21 @@ def post_notes(url:str):
 	if div_comment.find('table')!=[]:
 		for table in div_comment.find_all('table'):
 			for ps in table.findChildren('p'):
-				if ps.find_all("br")!=[]:
-					for brs in ps.findChildren("br"):
-						brs.decompose()
-				if ps.find_all("strong")!=[]:
-					for strongs in ps.findChildren("strong"):
-						strongs.unwrap()
-				if ps.find_all("span")!=[]:
-					for spans in ps.findChildren("span"):
-						spans.unwrap()
-				ps.string=ps.decode_contents().replace("\n",'').replace("\t","")
+				if ps.find_all(recursive=True):
+					for obj in ps.find_all(recursive=True):
+						obj.unwrap()
+# =============================================================================
+# 				if ps.find_all("br")!=[]:
+# 					for brs in ps.findChildren("br"):
+# 						brs.decompose()
+# 				if ps.find_all("strong")!=[]:
+# 					for strongs in ps.findChildren("strong"):
+# 						strongs.unwrap()
+# 				if ps.find_all("span")!=[]:
+# 					for spans in ps.findChildren("span"):
+# 						spans.unwrap()
+# 				ps.string=ps.decode_contents().replace("\n",'').replace("\t","")
+# =============================================================================
 				ps.unwrap()
 	final_post=(htt_conf.handle(div_comment.decode_contents()))
 	final_post=final_post.replace(" | ",'|')
@@ -141,21 +146,21 @@ def post_notes(url:str):
 
 
 	
-	#Splitting and posting	
+	#Splitting and posting
 	flair_template=list(bot_login.subreddit(SUB[DEBUG_subreddit]).flair.link_templates)
 	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), next((item.get('id') for item in flair_template if item["text"] == "Discussion"), None))
-	if len(final_post)>37000:
-		double_skips=np.array([m.start() for m in re.finditer('\n\n', final_post)])
-		split_arg=double_skips[np.argmin(np.abs(double_skips-37000))]
+	if len(final_post)>40000:
+		split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post[:40000])])[-1]
+		if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post[:40000])])[-1]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
 		bot_login.subreddit(SUB[DEBUG_subreddit]).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
 		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 		time.sleep(5)
 		while True:
-			if len(final_post2)>9500:
-				double_skips=np.array([m.start() for m in re.finditer('\n', final_post2)])
-				split_arg=double_skips[np.argmin(np.abs(double_skips-9500))]
+			if len(final_post2)>10000:
+				split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post2[:10000])])[-1]
+				if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post2[:10000])])[-1]
 				final_post1,final_post2=final_post2[:split_arg],final_post2[split_arg:]
 				for comment in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
 					comment.reply(final_post1).disable_inbox_replies()
@@ -209,7 +214,7 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-# post_notes("https://forums.warframe.com/topic/1212921-the-helminth-dev-workshop/")
+# post_notes("https://forums.warframe.com/topic/1172454-warframe-revised-update-2720/")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
