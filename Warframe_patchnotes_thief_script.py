@@ -133,6 +133,7 @@ def post_notes(url:str):
 	final_post=final_post.replace(">",'') #Might break some things if we ever need < or >.
 	final_post=final_post.replace("_**_**",'_**')
 	final_post=final_post.replace("**_**_",'**_')
+	final_post=final_post.replace(": *",':*')
 	
 	#title and url
 	title_pre_split=soup.title.decode_contents()
