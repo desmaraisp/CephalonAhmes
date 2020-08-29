@@ -28,7 +28,6 @@ chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-dev-shm-usage')
-#add --single-process  if the problem persists
 browser=webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options)
 
 
@@ -44,7 +43,7 @@ bot_login.validate_on_submit=True
 #cloudcube login
 session_cloudcube = boto3.Session(
 	aws_access_key_id=os.environ["aws_access_key_id"],
-    aws_secret_access_key=os.environ["aws_secret_access_key"],
+	aws_secret_access_key=os.environ["aws_secret_access_key"],
 )
 s3 = session_cloudcube.resource('s3')
 cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
@@ -55,12 +54,8 @@ DEBUG_subreddit = False #False on release
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
-if source_forum_is_updates:
-	warframe_forum_url_latest_update="https://forums.warframe.com/forum/3-pc-update-notes/"
-else:
-	warframe_forum_url_latest_update="https://forums.warframe.com/forum/36-general-discussion/"
-
-SUB={True:"scrappertest",False:"warframe"}
+warframe_forum_url_latest_update={True:"https://forums.warframe.com/forum/3-pc-update-notes/",False:"https://forums.warframe.com/forum/36-general-discussion/"}[source_forum_is_updates]
+SUB={True:"scrappertest",False:"warframe"}[DEBUG_subreddit]
 
 
 def post_notes(url:str):
@@ -68,8 +63,18 @@ def post_notes(url:str):
 		response=session.get(url,timeout=20)
 		soup=BeautifulSoup(response.text,'html.parser')
 	div_comment=soup.find('div',{"data-role":"commentContent"})
+	
+	if div_comment.find_all("blockquote"):
+		for block in div_comment.find_all("blockquote"):
+			block.find("div").decompose()
+			
+	if div_comment.find_all("div",{"class":"ipsSpoiler_header"}):
+		for spoilerheader in div_comment.find_all("div",{"class":"ipsSpoiler_header"}):
+			spoilerheader.decompose()
+	
 	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'})!=[]:
 		div_comment.find('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}).decompose() #removes edited tags
+	
 	if div_comment.find_all("strong")!=[]:
 		for strong in div_comment.find_all("strong"):
 			if strong.find_all('br')!=[]:
@@ -81,60 +86,58 @@ def post_notes(url:str):
 					newstrong.string=strong_text_list[i]
 					for br in brs_list:strong.parent.strong.insert_after(br)
 					strong.parent.insert(-1,newstrong)
+			if strong.string:strong.string=strong.string.strip(" ")
+	
 	if div_comment.find_all('img')!=[]:
 		for i in div_comment.find_all("img"):
 			if i.parent.name=="a":
 				image_source=i.parent["href"]
 				i.parent["href"]=None
 				i["src"]=image_source
+	
 	if div_comment.find_all("source",{"type":"video/mp4"})!=[]:
 		for i in div_comment.find_all("source",{"type":"video/mp4"}):
 			video_source=i["src"]
 			i.parent.find('a')['href']=video_source
+	
 	if div_comment.find_all('iframe',{"class":'ipsEmbed_finishedLoading'})!=[]:
 		for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
 			i.string=i['src'].strip("?do=embed")
+	
 	if div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"})!=[]:
 		for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
 			i.string=i["data-embed-src"]
+	
 	if div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"})!=[]:
 		for i in div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"}):
 			i.string=i["src"]
-
-
-	htt_conf=htt.HTML2Text()
-	htt_conf.use_automatic_links=True
-	htt_conf.body_width=0
 	
-	#strip superfluous parts/correct mistakes
+	if div_comment.find_all("em"):
+		for em in div_comment.find_all("em"):
+			if em.find_all("strong"):
+				for strong in em:
+					strong.unwrap()
+					em.string=f"**{em.string}**"
+	
 	if div_comment.find('table')!=[]:
 		for table in div_comment.find_all('table'):
 			for ps in table.findChildren('p'):
 				if ps.find_all(recursive=True):
 					for obj in ps.find_all(recursive=True):
 						obj.unwrap()
-# =============================================================================
-# 				if ps.find_all("br")!=[]:
-# 					for brs in ps.findChildren("br"):
-# 						brs.decompose()
-# 				if ps.find_all("strong")!=[]:
-# 					for strongs in ps.findChildren("strong"):
-# 						strongs.unwrap()
-# 				if ps.find_all("span")!=[]:
-# 					for spans in ps.findChildren("span"):
-# 						spans.unwrap()
-# 				ps.string=ps.decode_contents().replace("\n",'').replace("\t","")
-# =============================================================================
 				ps.unwrap()
-	final_post=(htt_conf.handle(div_comment.decode_contents()))
-	final_post=final_post.replace(" | ",'|')
-	final_post=final_post.replace("![",'[')
-	final_post=final_post.replace("<",'')
-	final_post=final_post.replace(">",'') #Might break some things if we ever need < or >.
-	final_post=final_post.replace("_**_**",'_**')
-	final_post=final_post.replace("**_**_",'**_')
-	final_post=final_post.replace(": *",':*')
+
+
+
+	htt_conf=htt.HTML2Text()
+	htt_conf.use_automatic_links=True
+	htt_conf.body_width=0
+	final_post=htt_conf.handle(div_comment.decode_contents())
 	
+	#strip superfluous parts/correct mistakes
+	final_post=final_post.replace("![",'[')
+
+
 	#title and url
 	title_pre_split=soup.title.decode_contents()
 	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
@@ -148,13 +151,13 @@ def post_notes(url:str):
 
 	
 	#Splitting and posting
-	flair_template=list(bot_login.subreddit(SUB[DEBUG_subreddit]).flair.link_templates)
+	flair_template=list(bot_login.subreddit(SUB).flair.link_templates)
 	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), next((item.get('id') for item in flair_template if item["text"] == "Discussion"), None))
 	if len(final_post)>40000:
 		split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post[:40000])])[-1]
 		if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post[:40000])])[-1]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
-		bot_login.subreddit(SUB[DEBUG_subreddit]).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
+		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
 		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 		time.sleep(5)
@@ -172,7 +175,7 @@ def post_notes(url:str):
 				break
 		
 	else:
-		bot_login.subreddit(SUB[DEBUG_subreddit]).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
+		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
 		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 
@@ -215,7 +218,11 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-# post_notes("https://forums.warframe.com/topic/1172454-warframe-revised-update-2720/")
+# =============================================================================
+# post_notes("""
+# https://forums.warframe.com/topic/1218639-psa-entrati-token-script-complete/
+# """)
+# =============================================================================
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
