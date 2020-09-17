@@ -220,9 +220,9 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-post_notes("""
-https://forums.warframe.com/topic/1225874-heart-of-deimos-update-2910/
-""")
+#post_notes("""
+#https://forums.warframe.com/topic/1225874-heart-of-deimos-update-2910/
+#""")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
