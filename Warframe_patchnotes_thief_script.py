@@ -22,7 +22,7 @@ if os.environ.get("GOOGLE_CHROME_BIN")!=None:
 	chromedriverpath=os.environ.get("CHROMEDRIVER_PATH")
 	chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 else:
-	chromedriverpath="chromedriver.exe"
+	chromedriverpath=r"C:\Users\Philippe\Documents\Python Scripts\Youtube Randomizer\chromedriver.exe"
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-gpu")
@@ -77,6 +77,7 @@ def post_notes(url:str):
 	
 	if div_comment.find_all("strong")!=[]:
 		for strong in div_comment.find_all("strong"):
+			strong.string=strong.string.strip(" ")
 			if strong.find_all('br')!=[]:
 				brs_list=[s.extract() for s in strong.find_all('br')]
 				strong_text_list=strong.get_text(strip=True,separator='\n').split('\n')
@@ -114,6 +115,7 @@ def post_notes(url:str):
 	
 	if div_comment.find_all("em"):
 		for em in div_comment.find_all("em"):
+			em.string=em.string.strip(" ")
 			if em.find_all("strong"):
 				for strong in em:
 					strong.unwrap()
@@ -218,11 +220,9 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-# =============================================================================
-# post_notes("""
-# https://forums.warframe.com/topic/1218639-psa-entrati-token-script-complete/
-# """)
-# =============================================================================
+post_notes("""
+https://forums.warframe.com/topic/1225874-heart-of-deimos-update-2910/
+""")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
