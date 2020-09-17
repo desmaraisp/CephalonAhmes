@@ -77,7 +77,6 @@ def post_notes(url:str):
 	
 	if div_comment.find_all("strong")!=[]:
 		for strong in div_comment.find_all("strong"):
-			strong.string=strong.string.strip(" ")
 			if strong.find_all('br')!=[]:
 				brs_list=[s.extract() for s in strong.find_all('br')]
 				strong_text_list=strong.get_text(strip=True,separator='\n').split('\n')
@@ -88,7 +87,7 @@ def post_notes(url:str):
 					for br in brs_list:strong.parent.strong.insert_after(br)
 					strong.parent.insert(-1,newstrong)
 			if strong.string:strong.string=strong.string.strip(" ")
-	
+
 	if div_comment.find_all('img')!=[]:
 		for i in div_comment.find_all("img"):
 			if i.parent.name=="a":
@@ -115,11 +114,11 @@ def post_notes(url:str):
 	
 	if div_comment.find_all("em"):
 		for em in div_comment.find_all("em"):
-			em.string=em.string.strip(" ")
 			if em.find_all("strong"):
 				for strong in em:
 					strong.unwrap()
 					em.string=f"**{em.string}**"
+			if em.string:em.string=em.string.strip(" ")
 	
 	if div_comment.find('table')!=[]:
 		for table in div_comment.find_all('table'):
@@ -220,9 +219,11 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-#post_notes("""
-#https://forums.warframe.com/topic/1225874-heart-of-deimos-update-2910/
-#""")
+# =============================================================================
+# post_notes("""
+# https://forums.warframe.com/topic/1225874-heart-of-deimos-update-2910/
+# """)
+# =============================================================================
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
