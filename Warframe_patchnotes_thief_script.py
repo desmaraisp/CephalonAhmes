@@ -116,8 +116,8 @@ def post_notes(url:str):
 		for em in div_comment.find_all("em"):
 			if em.find_all("strong"):
 				for strong in em.find_all("strong"):
+					strong.string=f"**{strong.string}**"
 					strong.unwrap()
-					em.string=f"**{em.string}**"
 			if em.string:em.string=em.string.strip(" ")
 	
 	if div_comment.find('table')!=[]:
@@ -219,9 +219,11 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-post_notes("""
-https://forums.warframe.com/topic/1226276-heart-of-deimos-hotfix-2911/
-""")
+# =============================================================================
+# post_notes("""
+# https://forums.warframe.com/topic/1226276-heart-of-deimos-hotfix-2911/
+# """)
+# =============================================================================
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
