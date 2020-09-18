@@ -50,7 +50,7 @@ cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
 
 
 source_forum_is_updates=True #True on release
-DEBUG_subreddit = False #False on release
+DEBUG_subreddit = True #False on release
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
@@ -115,7 +115,7 @@ def post_notes(url:str):
 	if div_comment.find_all("em"):
 		for em in div_comment.find_all("em"):
 			if em.find_all("strong"):
-				for strong in em:
+				for strong in em.find_all("strong"):
 					strong.unwrap()
 					em.string=f"**{em.string}**"
 			if em.string:em.string=em.string.strip(" ")
@@ -219,11 +219,9 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-# =============================================================================
-# post_notes("""
-# https://forums.warframe.com/topic/1225874-heart-of-deimos-update-2910/
-# """)
-# =============================================================================
+post_notes("""
+https://forums.warframe.com/topic/1226276-heart-of-deimos-hotfix-2911/
+""")
 #%%
 # fetch newest pc update note post from forum
 sleeptime=60
