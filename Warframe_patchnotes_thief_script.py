@@ -242,7 +242,9 @@ while True:
 		if newest_urls_array[i] not in last_posted_urls_array:
 			if newest_titles_array[i] not in last_posted_titles_array:
 				print(newest_titles_array[i])
-				post_notes(newest_urls_array[i])
+				subreddit_new_list=[sub_new_post.title for sub_new_post in bot_login.subreddit(SUB).new(limit=25)]
+				if newest_titles_array[i] not in subreddit_new_list:
+					post_notes(newest_urls_array[i])
 				last_posted_urls_array[i+2*len(forums_url_list)]=last_posted_urls_array[i+len(forums_url_list)]
 				last_posted_urls_array[i+len(forums_url_list)]=last_posted_urls_array[i]
 				last_posted_urls_array[i]=newest_urls_array[i]
