@@ -58,7 +58,7 @@ warframe_forum_url_latest_update={True:"https://forums.warframe.com/forum/3-pc-u
 SUB={True:"scrappertest",False:"warframe"}[DEBUG_subreddit]
 
 
-def post_notes(url:str):
+def post_notes(url:str,SUB_local:str):
 	with requests.session() as session:
 		response=session.get(url,timeout=20)
 		soup=BeautifulSoup(response.text,'html.parser')
@@ -152,13 +152,13 @@ def post_notes(url:str):
 
 	
 	#Splitting and posting
-	flair_template=list(bot_login.subreddit(SUB).flair.link_templates)
+	flair_template=list(bot_login.subreddit(SUB_local).flair.link_templates)
 	news_flair_id=next((item.get('id') for item in flair_template if item["text"] == "News"), next((item.get('id') for item in flair_template if item["text"] == "Discussion"), None))
 	if len(final_post)>40000:
 		split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post[:40000])])[-1]
 		if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post[:40000])])[-1]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
-		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
+		bot_login.subreddit(SUB_local).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
 		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 		time.sleep(5)
@@ -176,7 +176,7 @@ def post_notes(url:str):
 				break
 		
 	else:
-		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
+		bot_login.subreddit(SUB_local).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
 		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 
@@ -222,7 +222,7 @@ def sleep_func(sleeptime):
 # =============================================================================
 # post_notes("""
 # https://forums.warframe.com/topic/1226276-heart-of-deimos-hotfix-2911/
-# """)
+# """,'scrappertest')
 # =============================================================================
 #%%
 # fetch newest pc update note post from forum
@@ -242,9 +242,11 @@ while True:
 		if newest_urls_array[i] not in last_posted_urls_array:
 			if newest_titles_array[i] not in last_posted_titles_array:
 				print(newest_titles_array[i])
-				subreddit_new_list=[sub_new_post.title for sub_new_post in bot_login.subreddit(SUB).new(limit=25)]
+				subreddit_new_list=[sub_new_post.title for sub_new_post in bot_login.subreddit(SUB).new(limit=10)]
 				if newest_titles_array[i] not in subreddit_new_list:
-					post_notes(newest_urls_array[i])
+					post_notes(newest_urls_array[i],SUB)
+				elif newest_titles_array[i] in subreddit_new_list:
+					post_notes(newest_urls_array[i],'scrappertest')
 				last_posted_urls_array[i+2*len(forums_url_list)]=last_posted_urls_array[i+len(forums_url_list)]
 				last_posted_urls_array[i+len(forums_url_list)]=last_posted_urls_array[i]
 				last_posted_urls_array[i]=newest_urls_array[i]
