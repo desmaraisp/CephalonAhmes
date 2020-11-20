@@ -87,12 +87,25 @@ def post_notes(url:str,SUB_local:str):
 					for br in brs_list:strong.parent.strong.insert_after(br)
 					strong.parent.insert(-1,newstrong)
 			if strong.string:strong.string=strong.string.strip(" ")
-
+			elif strong.text:
+				if strong.find('a'):
+					for _ in strong.find_all("a"):
+						_.unwrap()
+				new_tag = soup.new_tag("strong")
+				new_tag.string=strong.text.replace('\xa0','').strip(' ')
+				strong.insert_after(new_tag)
+				strong.decompose()
+				
+	
 	if div_comment.find_all('img')!=[]:
 		for i in div_comment.find_all("img"):
 			if i.parent.name=="a":
 				image_source=i.parent["href"]
 				i.parent["href"]=None
+				i["src"]=image_source
+			elif i.parent.parent.name=="a":
+				image_source=i.parent.parent["href"]
+				i.parent.parent["href"]=None
 				i["src"]=image_source
 	
 	if div_comment.find_all("source",{"type":"video/mp4"})!=[]:
@@ -114,10 +127,6 @@ def post_notes(url:str,SUB_local:str):
 	
 	if div_comment.find_all("em"):
 		for em in div_comment.find_all("em"):
-			if em.find_all("strong"):
-				for strong in em.find_all("strong"):
-					strong.string=f"**{strong.string}**"
-					strong.unwrap()
 			if em.string:em.string=em.string.strip(" ")
 	
 	if div_comment.find('table')!=[]:
@@ -137,7 +146,6 @@ def post_notes(url:str,SUB_local:str):
 	
 	#strip superfluous parts/correct mistakes
 	final_post=final_post.replace("![",'[')
-
 
 	#title and url
 	title_pre_split=soup.title.decode_contents()
@@ -225,7 +233,7 @@ def sleep_func(sleeptime):
 
 # =============================================================================
 # post_notes("""
-# https://forums.warframe.com/topic/1226276-heart-of-deimos-hotfix-2911/
+# https://forums.warframe.com/topic/1236257-update-295-deimos-arcana/
 # """,'scrappertest')
 # =============================================================================
 #%%
