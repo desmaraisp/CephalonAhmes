@@ -127,8 +127,12 @@ def post_notes(url:str,SUB_local:str):
 	
 	if div_comment.find_all("em"):
 		for em in div_comment.find_all("em"):
+			if em.find_all("strong"):
+				for strong in em.find_all("strong"):
+					strong.string=f"**{strong.string}**"
+					strong.unwrap()
 			if em.string:em.string=em.string.strip(" ")
-	
+			
 	if div_comment.find('table')!=[]:
 		for table in div_comment.find_all('table'):
 			for ps in table.findChildren('p'):
