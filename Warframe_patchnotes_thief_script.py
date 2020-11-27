@@ -155,6 +155,7 @@ def post_notes(url:str,SUB_local:str):
 	title_pre_split=soup.title.decode_contents()
 	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
 	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1]).replace("PSA: ","")
+	title=title.strip()
 	if "+" in title and "PC Update Notes" in title_pre_split:
 		return
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
@@ -237,7 +238,7 @@ def sleep_func(sleeptime):
 
 # =============================================================================
 # post_notes("""
-# https://forums.warframe.com/topic/1236257-update-295-deimos-arcana/
+# https://forums.warframe.com/topic/1238097-wrapping-up-2020-looking-toward-2021/
 # """,'scrappertest')
 # =============================================================================
 #%%
