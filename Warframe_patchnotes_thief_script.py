@@ -86,13 +86,13 @@ def post_notes(url:str,SUB_local:str):
 					newstrong.string=strong_text_list[i]
 					for br in brs_list:strong.parent.strong.insert_after(br)
 					strong.parent.insert(-1,newstrong)
-			if strong.string:strong.string=strong.string.strip(" ")
+			if strong.string:strong.string=strong.string.strip()
 			elif strong.text:
 				if strong.find('a'):
 					for _ in strong.find_all("a"):
 						_.unwrap()
 				new_tag = soup.new_tag("strong")
-				new_tag.string=strong.text.replace('\xa0','').strip(' ')
+				new_tag.string=strong.text.replace('\xa0','').strip()
 				strong.insert_after(new_tag)
 				strong.decompose()
 				
@@ -115,7 +115,7 @@ def post_notes(url:str,SUB_local:str):
 	
 	if div_comment.find_all('iframe',{"class":'ipsEmbed_finishedLoading'})!=[]:
 		for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
-			i.string=i['src'].strip("?do=embed")
+			i.string=i['src'].replace("?do=embed",'')
 	
 	if div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"})!=[]:
 		for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
@@ -131,7 +131,7 @@ def post_notes(url:str,SUB_local:str):
 				for strong in em.find_all("strong"):
 					strong.string=f"**{strong.string}**"
 					strong.unwrap()
-			if em.string:em.string=em.string.strip(" ")
+			if em.string:em.string=em.string.strip()
 			
 	if div_comment.find('table')!=[]:
 		for table in div_comment.find_all('table'):
