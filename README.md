@@ -1,6 +1,8 @@
 # CephalonAhmes
 Heroku-hosted bot used to scrape update notes from the warframe forums and post them to the warframe subreddit
 
+You can see the full list of submissions made by the bot over [here](https://www.reddit.com/user/CephalonAhmes/submitted/?sort=new).
+
 What it does:
 
 - It opens all three of those urls: https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc, https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc, https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc and finds the most recent post in each of them. 
