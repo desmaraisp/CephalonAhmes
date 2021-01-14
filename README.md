@@ -7,11 +7,11 @@ What it does:
 
 - It opens all three of those urls: https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc, https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc, https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc and finds the most recent post in each of them. 
 
-- To make sure not to post duplicates, it compares said urls to an archive stored in a text file on an Amazon s3 cloud. That archive includes the last 3 posts reported from each forum, and the name of these submissions
+- To make sure not to post duplicates, it compares said urls to an archive stored in a text file on an Amazon s3 cloud. That archive includes the last 3 posts reposted from each forum, and the name of said submissions
 
-- If the urls and names differ, we have a new post! And so we open the new post in selenium and rip out the text (and the title)
+- If the urls and names differ, we have a new post! And so we open the new post with requests and rip out the text (and the title)
 
-- We translate said text to markdown, and do some additional manipulations to fix a few specific formatting issues, since the translation program isn't perfect.
+- We translate said text to markdown, and do some additional manipulations to fix a few specific formatting issues, since the translation library isn't perfect.
 
 - We then post the translated text to https://www.reddit.com/r/Warframe/ with the "News" flair while making sure not to forget the post size limit (we may need to break it down in multiple parts if it exceeds 40 000 characters)
 
@@ -51,7 +51,5 @@ Process to bring such a script to heroku:
 Special notes:
 
 - The warframe forum has an odd behavior with refresh, I initally used request to get the post url, but the website would not refresh the data when refreshed or when responding to a new request. I had to use selenium to do a few manipulations on the site to force it to refresh the data because only actual clicks on the website's sorting menu could force the refresh. If whatever you want to scrape doesn't have this sort of behavior, you could totally remove everything selenium-related and just use requests.
-
-- Some of the scraping logic, the posting subreddit and all the html navigation on the forum are hard-coded, so the code needs quite a few changes if you want it to apply to another site.
 
 - An easy way to get an amazon s3 cloud with the associated keys if you don't already have an account would be to add the cloud-cube add-on on heroku (under resources), then all you have to do is click on the add-on to see your bucket. The keys are in the settings, top-right corner.
