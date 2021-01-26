@@ -56,13 +56,26 @@ def start_reddit_session():
 	bot_login.validate_on_submit=True
 	return bot_login
 
-def start_cloudcube_session():
+def start_cloudcube_session(file_path):
 	session_cloudcube = boto3.Session(
 		aws_access_key_id=os.environ["aws_access_key_id"],
 		aws_secret_access_key=os.environ["aws_secret_access_key"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
+	return s3.Object('cloud-cube',os.environ[file_path])
+
+def daily_log_reset():
+	cloud_cube_object=start_cloudcube_session("cloudcube_ahmes_log_file")
+	cloud_cube_object.put(Bucket='cloud-cube',Body=[].encode('utf-8'),Key=os.environ["cloudcube_ahmes_log_file"])
+
+def custom_print(string_to_print):
+	cloud_cube_object=start_cloudcube_session("cloudcube_ahmes_log_file")
+	print(string_to_print)
+	current_log=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
+	np.append(current_log,string_to_print)
+	cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(current_log).encode('utf-8'),Key=os.environ["cloudcube_ahmes_log_file"])
+	
+custom_print('test')
 
 
 def process_div_comment(soup):
@@ -210,7 +223,7 @@ def post_notes(url:str,SUB:str):
 	title, title_pre_split=get_title(soup, htt_conf)
 
 	if "+" in title and "PC Update Notes" in title_pre_split:
-		print("Excluded micropatch")
+		custom_print("Excluded micropatch")
 		return
 	
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
@@ -245,7 +258,7 @@ def fetch_url(forums_url_list, browser):
 			try:
 				arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
 			except ValueError:
-				print("404")
+				custom_print("404")
 				time.sleep(20)
 				continue
 			success=True
@@ -271,7 +284,8 @@ def sleep_func(sleeptime):
 def main_loop(SUB):
 	sleeptime=60
 	loop_duration_in_hours=13
-	cloud_cube_object=start_cloudcube_session()
+	cloud_cube_object=start_cloudcube_session("cloudcube_ahmes_url_data")
+	daily_log_reset()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
 	initial_time=time.time()
@@ -282,13 +296,13 @@ def main_loop(SUB):
 			forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
 			newest_urls_array,newest_titles_array=fetch_url(forums_url_list, browser)
 		except TimeoutException:
-			print("Timeout")
+			custom_print("Timeout")
 			sleep_func(sleeptime)
 			continue
 		for i in range(len(newest_urls_array)):
 			if newest_urls_array[i] not in last_posted_urls_array:
 				if newest_titles_array[i] not in last_posted_titles_array:
-					print(newest_titles_array[i])
+					custom_print(newest_titles_array[i])
 					post_notes(newest_urls_array[i],SUB)
 					last_posted_urls_array[i+2*len(forums_url_list)]=last_posted_urls_array[i+len(forums_url_list)]
 					last_posted_urls_array[i+len(forums_url_list)]=last_posted_urls_array[i]
@@ -296,9 +310,9 @@ def main_loop(SUB):
 					last_posted_titles_array[i+(2*len(forums_url_list))]=last_posted_titles_array[i+len(forums_url_list)]
 					last_posted_titles_array[i+len(forums_url_list)]=last_posted_titles_array[i]
 					last_posted_titles_array[i]=newest_titles_array[i]
-		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloudcube_ahmes_url_data"])
 		sleep_func(sleeptime)
-	print("shutting down after loop finishes")
+	custom_print("shutting down after loop finishes")
 	signal.raise_signal(signal.SIGTERM)
 	
 	
