@@ -275,7 +275,7 @@ def main_loop(SUB):
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
 	initial_time=time.time()
-	while (time.time()-initial_time()) < (loop_duration_in_hours*3600):
+	while (time.time()-initial_time) < (loop_duration_in_hours*3600):
 		last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[:len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2]
 		last_posted_titles_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2:]
 		try:
