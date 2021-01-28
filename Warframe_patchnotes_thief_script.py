@@ -299,7 +299,7 @@ def main_loop(SUB):
 		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 		sleep_func(sleeptime)
 	print("shutting down after loop finishes")
-	signal.raise_signal(signal.SIGTERM)
+	browser.quit()
 	
 	
 #%%
