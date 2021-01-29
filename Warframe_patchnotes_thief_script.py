@@ -16,7 +16,7 @@ import signal
 import sys
 
 
-#%%
+
 
 
 source_forum_is_updates=True #True on release
@@ -29,7 +29,7 @@ target_SUB={True:"scrappertest",False:"warframe"}[DEBUG_subreddit]
 
 
 
-#%%
+
 
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
@@ -270,12 +270,10 @@ def sleep_func(sleeptime):
 #%%
 def main_loop(SUB):
 	sleeptime=60
-	loop_duration_in_hours=13
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
-	initial_time=time.time()
-	while (time.time()-initial_time) < (loop_duration_in_hours*3600):
+	while True:
 		last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[:len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2]
 		last_posted_titles_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2:]
 		try:
@@ -298,8 +296,6 @@ def main_loop(SUB):
 					last_posted_titles_array[i]=newest_titles_array[i]
 		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 		sleep_func(sleeptime)
-	print("shutting down after loop finishes")
-	browser.quit()
 	
 	
 #%%
