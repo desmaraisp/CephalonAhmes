@@ -37,7 +37,7 @@ def start_chrome_browser():
 		chromedriverpath=os.environ.get("CHROMEDRIVER_PATH")
 		chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 	else:
-		chromedriverpath=r"C:\Users\Philippe\Documents\Python Scripts\Youtube Randomizer\chromedriver.exe"
+		chromedriverpath=r"C:\Users\Philippe\Documents\Python Scripts\Cephalon_Ahmes_directory\Warframe patchnotes thief script\chromedriver.exe"
 	chrome_options.add_argument('--no-sandbox')
 	chrome_options.add_argument("--disable-extensions")
 	chrome_options.add_argument("--disable-gpu")
@@ -58,8 +58,8 @@ def start_reddit_session():
 
 def start_cloudcube_session():
 	session_cloudcube = boto3.Session(
-		aws_access_key_id=os.environ["aws_access_key_id"],
-		aws_secret_access_key=os.environ["aws_secret_access_key"],
+		aws_access_key_id=os.environ["CLOUDCUBE_ACCESS_KEY_ID"],
+		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
 	return s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
