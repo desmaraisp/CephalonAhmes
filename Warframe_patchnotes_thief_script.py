@@ -300,7 +300,7 @@ def main_loop(SUB):
 					last_posted_titles_array[i+(2*len(forums_url_list))]=last_posted_titles_array[i+len(forums_url_list)]
 					last_posted_titles_array[i+len(forums_url_list)]=last_posted_titles_array[i]
 					last_posted_titles_array[i]=newest_titles_array[i]
-		cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+					cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
 		sleep_func(sleeptime)
 	
 	
