@@ -267,6 +267,13 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
+def fetch_cloudcube(cloud_cube_object):
+	cloudcube_result=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
+	last_posted_urls_array=cloudcube_result[:len(cloudcube_result)//2]
+	last_posted_titles_array=cloudcube_result[len(cloudcube_result)//2:]
+	return last_posted_urls_array,last_posted_titles_array
+
+
 #%%
 def main_loop(SUB):
 	sleeptime=60
@@ -274,8 +281,7 @@ def main_loop(SUB):
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
 	while True:
-		last_posted_urls_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[:len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2]
-		last_posted_titles_array=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')[len(np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255'))//2:]
+		last_posted_urls_array,last_posted_titles_array=fetch_cloudcube(cloud_cube_object)
 		try:
 			forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
 			newest_urls_array,newest_titles_array=fetch_url(forums_url_list, browser)
