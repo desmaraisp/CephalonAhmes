@@ -117,10 +117,15 @@ def process_div_comment(soup):
 			video_source=i["src"]
 			i.parent.find('a')['href']=video_source
 	
+	
 	if div_comment.find_all('iframe',{"class":'ipsEmbed_finishedLoading'})!=[]:
 		for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
 			i.string=i['src'].replace("?do=embed",'')
-	
+			
+	if div_comment.find_all('div',{"class":'ipsEmbeddedVideo'})!=[]:
+		for i in div_comment.find_all('div',{"class":'ipsEmbeddedVideo'}):
+			i.find('iframe').string=i.find('iframe')['data-embed-src']
+
 	if div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"})!=[]:
 		for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
 			i.string=i["data-embed-src"]
@@ -308,7 +313,7 @@ def main_loop(SUB):
 
 # =============================================================================
 # post_notes("""
-# https://forums.warframe.com/topic/1238097-wrapping-up-2020-looking-toward-2021/
+# https://forums.warframe.com/topic/1250481-octavia-prime-access-is-live/
 # """,'scrappertest')
 # =============================================================================
 
