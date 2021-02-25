@@ -1,12 +1,8 @@
-import os
-import boto3
-session_cloudcube = boto3.Session(
-	aws_access_key_id=os.environ["aws_access_key_id"],
-    aws_secret_access_key=os.environ["aws_secret_access_key"],
-)
-s3 = session_cloudcube.resource('s3')
-cloud_cube_object=s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
-print(cloud_cube_object.get()['Body'].read().decode('utf-8'))
+from Warframe_patchnotes_thief_script import start_cloudcube_session,fetch_cloudcube
+
+
+cloud_cube_object=start_cloudcube_session()
+print(fetch_cloudcube(cloud_cube_object))
 
 
 
