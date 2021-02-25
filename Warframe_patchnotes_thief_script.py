@@ -317,4 +317,5 @@ def main_loop(SUB):
 # """,'scrappertest')
 # =============================================================================
 
-main_loop(target_SUB)
+if __name__=="__main__":
+	main_loop(target_SUB)
