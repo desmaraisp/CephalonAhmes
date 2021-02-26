@@ -68,88 +68,75 @@ def start_cloudcube_session():
 def process_div_comment(soup):
 	div_comment=soup.find('div',{"data-role":"commentContent"})
 	
-	if div_comment.find_all("blockquote"):
-		for block in div_comment.find_all("blockquote"):
-			block.find("div").decompose()
+	for block in div_comment.find_all("blockquote"):
+		block.find("div").decompose()
 			
-	if div_comment.find_all("div",{"class":"ipsSpoiler_header"}):
-		for spoilerheader in div_comment.find_all("div",{"class":"ipsSpoiler_header"}):
-			spoilerheader.decompose()
+	for spoilerheader in div_comment.find_all("div",{"class":"ipsSpoiler_header"}):
+		spoilerheader.decompose()
 	
-	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'})!=[]:
+	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}):
 		div_comment.find('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}).decompose() #removes edited tags
 	
-	if div_comment.find_all("strong")!=[]:
-		for strong in div_comment.find_all("strong"):
-			if strong.find_all('br')!=[]:
-				brs_list=[s.extract() for s in strong.find_all('br')]
-				strong_text_list=strong.get_text(strip=True,separator='\n').split('\n')
-				strong.string=strong_text_list[0]
-				for i in np.arange(1,len(strong_text_list)):
-					newstrong=soup.new_tag("strong")
-					newstrong.string=strong_text_list[i]
-					for br in brs_list:strong.parent.strong.insert_after(br)
-					strong.parent.insert(-1,newstrong)
-			if strong.string:strong.string=strong.string.strip()
-			elif strong.text:
-				if strong.find('a'):
-					for _ in strong.find_all("a"):
-						_.unwrap()
-				new_tag = soup.new_tag("strong")
-				new_tag.string=strong.text.replace('\xa0','').strip()
-				strong.insert_after(new_tag)
-				strong.decompose()
+	for strong in div_comment.find_all("strong"):
+		if strong.find_all('br')!=[]: #if there's any breakpoints in the strong tag, split the strong into smaller strongs
+			brs_list=[s.extract() for s in strong.find_all('br')]
+			strong_text_list=strong.get_text(strip=True,separator='\n').split('\n')
+			strong.string=strong_text_list[0]
+			for i in strong_text_list[1:]:
+				newstrong=soup.new_tag("strong")
+				newstrong.string=i
+				for br in brs_list:strong.parent.strong.insert_after(br)
+				strong.parent.insert(-1,newstrong)
+		if strong.string:strong.string=strong.string.strip()
+		elif strong.text:
+			if strong.find('a'):
+				for _ in strong.find_all("a"):
+					_.unwrap()
+			new_tag = soup.new_tag("strong")
+			new_tag.string=strong.text.replace('\xa0','').strip()
+			strong.insert_after(new_tag)
+			strong.decompose()
 				
 	
-	if div_comment.find_all('img')!=[]:
-		for i in div_comment.find_all("img"):
-			if i.parent.name=="a":
-				image_source=i.parent["href"]
-				i.parent["href"]=None
-				i["src"]=image_source
-			elif i.parent.parent.name=="a":
-				image_source=i.parent.parent["href"]
-				i.parent.parent["href"]=None
-				i["src"]=image_source
+	for i in div_comment.find_all("img"):
+		if i.parent.name=="a":
+			image_source=i.parent["href"]
+			i.parent["href"]=None
+			i["src"]=image_source
+		elif i.parent.parent.name=="a":
+			image_source=i.parent.parent["href"]
+			i.parent.parent["href"]=None
+			i["src"]=image_source
 	
-	if div_comment.find_all("source",{"type":"video/mp4"})!=[]:
-		for i in div_comment.find_all("source",{"type":"video/mp4"}):
-			video_source=i["src"]
-			i.parent.find('a')['href']=video_source
+	for i in div_comment.find_all("source",{"type":"video/mp4"}):
+		video_source=i["src"]
+		i.parent.find('a')['href']=video_source
 	
 	
-	if div_comment.find_all('iframe',{"class":'ipsEmbed_finishedLoading'})!=[]:
-		for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
-			i.string=i['src'].replace("?do=embed",'')
+	for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
+		i.string=i['src'].replace("?do=embed",'')
 			
-	if div_comment.find_all('div',{"class":'ipsEmbeddedVideo'})!=[]:
-		for i in div_comment.find_all('div',{"class":'ipsEmbeddedVideo'}):
-			i.find('iframe').string=i.find('iframe')['data-embed-src']
+	for i in div_comment.find_all('div',{"class":'ipsEmbeddedVideo'}):
+		i.find('iframe').string=i.find('iframe')['data-embed-src']
 
-	if div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"})!=[]:
-		for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
-			i.string=i["data-embed-src"]
+	for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
+		i.string=i["data-embed-src"]
 	
-	if div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"})!=[]:
-		for i in div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"}):
-			i.string=i["src"]
+	for i in div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"}):
+		i.string=i["src"]
 	
-	if div_comment.find_all("em"):
-		for em in div_comment.find_all("em"):
-			if em.find_all("strong"):
-				for strong in em.find_all("strong"):
-					strong.string=f"**{strong.string}**"
-					strong.unwrap()
-			if em.string:em.string=em.string.strip()
+	for em in div_comment.find_all("em"):
+		for strong in em.find_all("strong"):
+			strong.string=f"**{strong.string}**"
+			strong.unwrap()
+		if em.string:em.string=em.string.strip()
 			
-	if div_comment.find('table')!=[]:
-		for table in div_comment.find_all('table'):
-			for ps in table.findChildren('p'):
-				if ps.find_all(recursive=True):
-					for obj in ps.find_all(recursive=True):
-						obj.unwrap()
-				ps.unwrap()
-				
+	for table in div_comment.find_all('table'):
+		for ps in table.findChildren('p'):
+			for obj in ps.find_all(recursive=True):
+				obj.unwrap()
+			ps.unwrap()
+			
 	return div_comment
 
 def get_title(soup, htt_conf):
