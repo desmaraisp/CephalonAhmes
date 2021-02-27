@@ -2,8 +2,10 @@ import signal
 from selenium.common.exceptions import TimeoutException
 import Warframe_patchnotes_thief_script as wpts
 import numpy as np
+import os
 
 def integration_test():
+	print(os.environ.get("CHROMEDRIVER_PATH"))
 	browser=wpts.start_chrome_browser()
 	signal.signal(signal.SIGTERM,wpts.signal_handler(browser))
 	while True:
