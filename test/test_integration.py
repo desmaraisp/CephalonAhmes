@@ -5,6 +5,7 @@ import numpy as np
 import os
 
 def integration_test():
+	os.environ["CHROMEDRIVER_PATH"]= os.environ["CHROMEWEBDRIVER"]+"/chromedriver"
 	browser=wpts.start_chrome_browser()
 	signal.signal(signal.SIGTERM,wpts.signal_handler(browser))
 	while True:

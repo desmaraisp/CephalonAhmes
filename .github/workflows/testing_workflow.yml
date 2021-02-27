@@ -27,5 +27,4 @@ jobs:
         PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
         PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
       run: |
-        echo "CHROMEDRIVER_PATH=$(echo $CHROMEWEBDRIVER)/chromedriver" >> $GITHUB_
         nosetests
