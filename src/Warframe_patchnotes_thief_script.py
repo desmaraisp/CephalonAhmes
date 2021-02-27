@@ -46,6 +46,7 @@ def start_chrome_browser():
 
 
 def start_reddit_session():
+	print(os.environ["PRAW_USERNAME"])
 	bot_login=praw.Reddit(client_id = os.environ["PRAW_CLIENT_ID"],
 		             client_secret = os.environ["PRAW_CLIENT_SECRET"],
 		             user_agent = 'warframe patch notes retriever bot 0.1',
