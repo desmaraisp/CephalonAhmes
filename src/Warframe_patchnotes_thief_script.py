@@ -46,11 +46,11 @@ def start_chrome_browser():
 
 
 def start_reddit_session():
-	bot_login=praw.Reddit(client_id = os.environ["praw_client_id"],
-		             client_secret = os.environ["praw_client_secret"],
+	bot_login=praw.Reddit(client_id = os.environ["PRAW_CLIENT_ID"],
+		             client_secret = os.environ["PRAW_CLIENT_SECRET"],
 		             user_agent = 'warframe patch notes retriever bot 0.1',
-		             username = os.environ["praw_username"],
-		             password = os.environ["praw_password"],validate_on_submit=True)
+		             username = os.environ["PRAW_USERNAME"],
+		             password = os.environ["PRAW_PASSWORD"],validate_on_submit=True)
 	bot_login.validate_on_submit=True
 	return bot_login
 
@@ -60,7 +60,7 @@ def start_cloudcube_session():
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["cloud_cube_file_loc"])
+	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_FILE_LOC"])
 
 
 def process_div_comment(soup):
@@ -161,7 +161,7 @@ def make_submission(SUB, final_post, title, news_flair_id):
 		if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post[:40000])])[-1]
 		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
 		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
-		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
+		for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 		time.sleep(5)
 		while True:
@@ -169,17 +169,17 @@ def make_submission(SUB, final_post, title, news_flair_id):
 				split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post2[:10000])])[-1]
 				if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post2[:10000])])[-1]
 				final_post1,final_post2=final_post2[:split_arg],final_post2[split_arg:]
-				for comment in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
+				for comment in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
 					comment.reply(final_post1).disable_inbox_replies()
 					time.sleep(5)
 			else:
-				for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
+				for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
 					submission.reply(final_post2).disable_inbox_replies()
 				break
 		
 	else:
 		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
-		for submission in bot_login.redditor(os.environ["praw_username"]).new(limit=1):
+		for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 
 def post_notes(url:str,SUB:str):
@@ -290,7 +290,7 @@ def main_loop(SUB):
 					last_posted_titles_array[i+(2*len(forums_url_list))]=last_posted_titles_array[i+len(forums_url_list)]
 					last_posted_titles_array[i+len(forums_url_list)]=last_posted_titles_array[i]
 					last_posted_titles_array[i]=newest_titles_array[i]
-					cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+					cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["CLOUD_CUBE_FILE_LOC"])
 		sleep_func(sleeptime)
 	
 	
