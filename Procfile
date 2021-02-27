@@ -1,1 +1,1 @@
-worker: python Warframe_patchnotes_thief_script.py
+worker: python src/Warframe_patchnotes_thief_script.py
