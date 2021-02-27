@@ -23,5 +23,10 @@ jobs:
     - name: Set env
       run: echo "CHROMEDRIVER_PATH=$(echo $CHROMEWEBDRIVER)/chromedriver" >> $GITHUB_ENV
     - name: Run Tests
+      env:
+        PRAW_CLIENT_ID: ${{ secrets.PRAW_CLIENT_ID }}
+        PRAW_CLIENT_SECRET: ${{ secrets.PRAW_CLIENT_SECRET }}
+        PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
+        PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
       run: |
         nosetests
