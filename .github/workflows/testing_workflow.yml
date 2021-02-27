@@ -22,6 +22,6 @@ jobs:
         pip install nose
     - name: Run test
       env:
-        CHROMEDRIVER_PATH: '${{ env.CHROMEWEBDRIVER }}/chromedriver.exe'
+        CHROMEDRIVER_PATH: '${{ CHROMEWEBDRIVER }}/chromedriver.exe'
       run: |
         nosetests
