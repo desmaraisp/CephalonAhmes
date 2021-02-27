@@ -1,7 +1,7 @@
 name: Run integration test
 
 on:
-  pull:
+  push:
     branches:
     - master
 
