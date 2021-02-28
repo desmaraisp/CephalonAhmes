@@ -23,10 +23,10 @@ jobs:
     - name: Set environment
       run: |
         echo "CHROMEDRIVER_PATH=$(echo $CHROMEWEBDRIVER)/chromedriver" >> $GITHUB_ENV
-        echo "PRAW_CLIENT_ID=${{ secrets.PRAW_CLIENT_ID }}" >> $GITHUB_ENV
-        echo "PRAW_CLIENT_SECRET=${{ secrets.PRAW_CLIENT_SECRET }}" >> $GITHUB_ENV
-        echo "PRAW_PASSWORD=${{ secrets.PRAW_PASSWORD }}" >> $GITHUB_ENV
-        echo "PRAW_USERNAME=${{ secrets.PRAW_USERNAME }}" >> $GITHUB_ENV
+        echo "PRAW_CLIENT_ID=echo ${{ secrets.PRAW_CLIENT_ID }}" >> $GITHUB_ENV
+        echo "PRAW_CLIENT_SECRET=echo ${{ secrets.PRAW_CLIENT_SECRET }}" >> $GITHUB_ENV
+        echo "PRAW_PASSWORD=echo ${{ secrets.PRAW_PASSWORD }}" >> $GITHUB_ENV
+        echo "PRAW_USERNAME=echo ${{ secrets.PRAW_USERNAME }}" >> $GITHUB_ENV
     - name: Run Tests
       run: |
         nosetests
