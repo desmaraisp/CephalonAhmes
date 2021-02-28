@@ -26,7 +26,7 @@ jobs:
         echo "PRAW_CLIENT_ID=echo ${{ secrets.PRAW_CLIENT_ID }}" >> $GITHUB_ENV
         echo "PRAW_CLIENT_SECRET=echo ${{ secrets.PRAW_CLIENT_SECRET }}" >> $GITHUB_ENV
         echo "PRAW_PASSWORD=echo ${{ secrets.PRAW_PASSWORD }}" >> $GITHUB_ENV
-        echo "PRAW_USERNAME=echo ${{ secrets.PRAW_USERNAME }}" >> $GITHUB_ENV
+        echo "PRAW_USERNAME=$(echo ${{ secrets.PRAW_USERNAME }})" >> $GITHUB_ENV
     - name: Run Tests
       run: |
         nosetests
