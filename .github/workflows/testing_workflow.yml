@@ -20,14 +20,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install nose
-    - name: Set environment
-      run: |
-        echo "CHROMEDRIVER_PATH=$(echo $CHROMEWEBDRIVER)/chromedriver" >> $GITHUB_ENV
-        echo "PRAW_CLIENT_ID=echo ${{ secrets.PRAW_CLIENT_ID }}" >> $GITHUB_ENV
-        echo "PRAW_CLIENT_SECRET=echo ${{ secrets.PRAW_CLIENT_SECRET }}" >> $GITHUB_ENV
-        echo "PRAW_PASSWORD=echo ${{ secrets.PRAW_PASSWORD }}" >> $GITHUB_ENV
-        echo "${{ secrets.PRAW_USERNAME }}"
-        echo "PRAW_USERNAME=${{secrets.PRAW_USERNAME}}" >> $GITHUB_ENV
+    - name: Set environment1
+      run: echo "CHROMEDRIVER_PATH=$(echo $CHROMEWEBDRIVER)/chromedriver" >> $GITHUB_ENV
+    - name: Set environment2
+      run: echo "PRAW_CLIENT_ID=echo ${{ secrets.PRAW_CLIENT_ID }}" >> $GITHUB_ENV
+    - name: Set environment3
+      run: echo "PRAW_CLIENT_SECRET=echo ${{ secrets.PRAW_CLIENT_SECRET }}" >> $GITHUB_ENV
+    - name: Set environment4
+      run: echo "PRAW_PASSWORD=echo ${{ secrets.PRAW_PASSWORD }}" >> $GITHUB_ENV
+    - name: Set environment5
+      run: echo "PRAW_USERNAME=${{secrets.PRAW_USERNAME}}" >> $GITHUB_ENV
     - name: Run Tests
       run: |
         nosetests
