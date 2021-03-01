@@ -270,8 +270,8 @@ def main_loop(SUB):
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
+	last_posted_urls_array,last_posted_titles_array=fetch_cloudcube(cloud_cube_object)
 	while True:
-		last_posted_urls_array,last_posted_titles_array=fetch_cloudcube(cloud_cube_object)
 		try:
 			forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
 			newest_urls_array,newest_titles_array=fetch_url(forums_url_list, browser)
