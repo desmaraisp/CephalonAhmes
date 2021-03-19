@@ -302,12 +302,12 @@ def main_loop(SUB):
 	
 #%%
 
-post_notes("""
-https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/
-""",'scrappertest')
-
 # =============================================================================
-# if __name__=="__main__":
-# 	main_loop(target_SUB)
+# post_notes("""
+# https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/
+# """,'scrappertest')
 # 
 # =============================================================================
+if __name__=="__main__":
+	main_loop(target_SUB)
+
