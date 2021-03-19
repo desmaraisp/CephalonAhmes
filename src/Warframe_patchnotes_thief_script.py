@@ -134,6 +134,12 @@ def process_div_comment(soup):
 			for obj in ps.find_all(recursive=True):
 				obj.unwrap()
 			ps.unwrap()
+		for tr in table.findChildren('tr'):
+			td=tr.find('td')
+			if not td.text:
+				td.string="-"
+			elif not td.text.strip():
+				td.string="-"
 			
 	return div_comment
 
@@ -170,11 +176,11 @@ def make_submission(SUB, final_post, title, news_flair_id):
 				if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post2[:10000])])[-1]
 				final_post1,final_post2=final_post2[:split_arg],final_post2[split_arg:]
 				for comment in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-					comment.reply(final_post1).disable_inbox_replies()
+					comment.reply(final_post1.strip()).disable_inbox_replies()
 					time.sleep(5)
 			else:
 				for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-					submission.reply(final_post2).disable_inbox_replies()
+					submission.reply(final_post2.strip()).disable_inbox_replies()
 				break
 		
 	else:
@@ -296,11 +302,12 @@ def main_loop(SUB):
 	
 #%%
 
-# =============================================================================
-# post_notes("""
-# https://forums.warframe.com/topic/1250481-octavia-prime-access-is-live/
-# """,'scrappertest')
-# =============================================================================
+post_notes("""
+https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/
+""",'scrappertest')
 
-if __name__=="__main__":
-	main_loop(target_SUB)
+# =============================================================================
+# if __name__=="__main__":
+# 	main_loop(target_SUB)
+# 
+# =============================================================================
