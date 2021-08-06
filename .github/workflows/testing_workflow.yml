@@ -20,8 +20,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install nose
-    - name: Set env
-      run: echo "CHROMEDRIVER_PATH=$(echo $CHROMEWEBDRIVER)/chromedriver" >> $GITHUB_ENV
     - name: Run Tests
       env:
         PRAW_CLIENT_ID: ${{ secrets.PRAW_CLIENT_ID }}

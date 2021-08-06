@@ -3,6 +3,7 @@ import html2text as htt
 from bs4 import BeautifulSoup
 import re
 import numpy as np
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 import boto3
 import requests
@@ -33,7 +34,6 @@ target_SUB={True:"scrappertest",False:"warframe"}[DEBUG_subreddit]
 
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
-	chromedriverpath=os.environ.get("CHROMEDRIVER_PATH")
 	if os.environ.get("GOOGLE_CHROME_BIN"):
 		chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 	chrome_options.add_argument('--no-sandbox')
@@ -41,7 +41,7 @@ def start_chrome_browser():
 	chrome_options.add_argument("--disable-gpu")
 	chrome_options.add_argument('--headless')
 	chrome_options.add_argument('--disable-dev-shm-usage')
-	return webdriver.Chrome(executable_path=chromedriverpath,options=chrome_options)
+	return webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
 
 
 
