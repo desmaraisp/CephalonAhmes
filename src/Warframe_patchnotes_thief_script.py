@@ -4,8 +4,7 @@ from bs4 import BeautifulSoup
 import re
 import numpy as np
 from webdriver_manager.chrome import ChromeDriverManager
-import time
-import boto3
+import time, boto3
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -150,7 +149,6 @@ def Check_Title_Validity(title, ForumPage):
 	title=title.replace("PSA: ","").strip()
 	
 	if "+" in title and ForumPage == "https://forums.warframe.com/forum/3-pc-update-notes/":
-		print("Excluded micropatch")
 		return title, False
 	return title, True
 
@@ -162,35 +160,31 @@ def get_subreddit_flair_id(SUB):
 	flair_template=list(start_reddit_session().subreddit(SUB).flair.link_templates)
 	return next((item.get('id') for item in flair_template if item["text"] == "News"), next((item.get('id') for item in flair_template if item["text"] == "Discussion"), None))
 
-def make_submission(SUB, final_post, title, news_flair_id):
+def split_content_for_character_limit(content, limit, separators = ['\n']):
+	content_before_limit = content[:limit]
+	for separator in separators:
+		contentSeparatorIndexes=[m.start() for m in re.finditer(separator, content_before_limit)]
+		if contentSeparatorIndexes.len!=1:
+			break
+
+	return content[contentSeparatorIndexes:], content[:contentSeparatorIndexes]
+
+
+def make_submission(SUB, content, title, news_flair_id):
 	#Splitting and posting
 	bot_login=start_reddit_session()
 	
-	if len(final_post)>40000:
-		split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post[:40000])])[-1]
-		if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post[:40000])])[-1]
-		final_post1,final_post2=final_post[:split_arg],final_post[split_arg:]
-		bot_login.subreddit(SUB).submit(title,selftext=final_post1,flair_id=news_flair_id,send_replies=False)
-		for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
-		time.sleep(5)
-		while True:
-			if len(final_post2)>10000:
-				split_arg=np.array([m.start() for m in re.finditer('\n\n', final_post2[:10000])])[-1]
-				if split_arg==0:split_arg=np.array([m.start() for m in re.finditer('\n', final_post2[:10000])])[-1]
-				final_post1,final_post2=final_post2[:split_arg],final_post2[split_arg:]
-				for comment in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-					comment.reply(final_post1.strip()).disable_inbox_replies()
-					time.sleep(5)
-			else:
-				for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-					submission.reply(final_post2.strip()).disable_inbox_replies()
-				break
+	Content_Before_Limit, content = split_content_for_character_limit(content, 40000, ['\n\n', '\n'])
+	
+	bot_login.subreddit(SUB).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)
+	for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
+		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 		
-	else:
-		bot_login.subreddit(SUB).submit(title,selftext=final_post,flair_id=news_flair_id,send_replies=False)
-		for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
+	while content:
+		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
+		for comment in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
+			comment.reply(Content_Before_Limit.strip()).disable_inbox_replies()
+		
 
 def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 	success = False
@@ -208,10 +202,10 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 	htt_conf=htt.HTML2Text()
 	htt_conf.use_automatic_links=True
 	htt_conf.body_width=0
-	final_post=htt_conf.handle(div_comment.decode_contents())
+	post_contents=htt_conf.handle(div_comment.decode_contents())
 	
 	#strip superfluous parts/correct mistakes
-	final_post=final_post.replace("![",'[')
+	post_contents=post_contents.replace("![",'[')
 
 
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
@@ -223,10 +217,10 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 
 	
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
-	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
+	post_contents="[Source]("+url+")\n\n"+post_contents+automatic_message
 
 	news_flair_id= get_subreddit_flair_id(DestinationSubreddit)
-	make_submission(DestinationSubreddit, final_post, SubmissionTitle, news_flair_id)
+	make_submission(DestinationSubreddit, post_contents, SubmissionTitle, news_flair_id)
 
 	
 def fetch_url(forums_url_list, browser):
