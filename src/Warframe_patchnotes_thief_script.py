@@ -17,17 +17,19 @@ import dpath.util as dpu
 
 
 
-DEBUG_Source_Forum=False #True on release
+DEBUG_Source_Forum=True #False on release
 DEBUG_subreddit = True #False on release
-CloudCubeFilePath = "/PostHistory.json"
+CloudCubeFilePath = os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json"
 sleeptime=60
 
 
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
-warframe_forum_urls={True:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],False:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
-target_SUB={True:"scrappertest",False:"warframe"}[DEBUG_subreddit]
+warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
+target_SUB_Dict_Live={False:"scrappertest",True:"warframe"}
+target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
+target_SUB_Dict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[DEBUG_subreddit]
 
 
 
@@ -46,11 +48,12 @@ def start_chrome_browser():
 
 
 def start_reddit_session():
-	bot_login=praw.Reddit(client_id = os.environ["PRAW_CLIENT_ID"],
-		             client_secret = os.environ["PRAW_CLIENT_SECRET"],
-		             user_agent = 'warframe patch notes retriever bot 0.1',
-		             username = os.environ["PRAW_USERNAME"],
-		             password = os.environ["PRAW_PASSWORD"],validate_on_submit=True)
+	bot_login=praw.Reddit(
+		client_id = os.environ["PRAW_CLIENT_ID"],
+		client_secret = os.environ["PRAW_CLIENT_SECRET"],
+		user_agent = 'warframe patch notes retriever bot 0.1',
+		username = os.environ["PRAW_USERNAME"],
+		password = os.environ["PRAW_PASSWORD"],validate_on_submit=True)
 	bot_login.validate_on_submit=True
 	return bot_login
 
@@ -60,7 +63,7 @@ def start_cloudcube_session():
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+CloudCubeFilePath)
+	return s3.Object('cloud-cube',CloudCubeFilePath)
 
 
 def process_div_comment(soup):
@@ -143,12 +146,13 @@ def process_div_comment(soup):
 			
 	return div_comment
 
-def get_title(soup, htt_conf):
-	title_pre_split=soup.title.decode_contents()
-	title_split_index=[m.start() for m in re.finditer("-",title_pre_split)]
-	title=htt_conf.handle(title_pre_split[:title_split_index[-2]-1]).replace("PSA: ","")
-	title=title.strip()
-	return title, title_pre_split
+def Check_Title_Validity(title, ForumPage):
+	title=title.replace("PSA: ","").strip()
+	
+	if "+" in title and ForumPage == "https://forums.warframe.com/forum/3-pc-update-notes/":
+		print("Excluded micropatch")
+		return title, False
+	return title, True
 
 def has_been_posted_to_subreddit(title, SUB):
 	subreddit_new_list=[sub_new_post.title for sub_new_post in start_reddit_session().subreddit(SUB).new(limit=10)]
@@ -188,7 +192,7 @@ def make_submission(SUB, final_post, title, news_flair_id):
 		for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 
-def post_notes(url:str,SUB:str):
+def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 	success = False
 	while not success:
 		try:
@@ -210,29 +214,26 @@ def post_notes(url:str,SUB:str):
 	final_post=final_post.replace("![",'[')
 
 
-	title, title_pre_split=get_title(soup, htt_conf)
-
-	if "+" in title and "PC Update Notes" in title_pre_split:
-		print("Excluded micropatch")
+	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
+	if not SubmissionValidTitle:
+		print(f"Submission Ignored with title {SubmissionTitle}.")
 		return
+
+	DestinationSubreddit = SubredditDict[not (has_been_posted_to_subreddit(SubmissionTitle, SubredditDict[True]))]
+
 	
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
 	final_post="[Source]("+url+")\n\n"+final_post+automatic_message
-	soup.decompose()
 
-	if has_been_posted_to_subreddit(title, SUB):
-		SUB="scrappertest"
-
-
-	news_flair_id= get_subreddit_flair_id(SUB)
-	make_submission(SUB, final_post, title, news_flair_id)
+	news_flair_id= get_subreddit_flair_id(DestinationSubreddit)
+	make_submission(DestinationSubreddit, final_post, SubmissionTitle, news_flair_id)
 
 	
 def fetch_url(forums_url_list, browser):
 	newest_posts_on_warframe_forum=[]
 	for forum_url in forums_url_list:
 		success=False
-		while not success:
+		while not success: #TODO update this with requests if possible
 			browser.get(forum_url)
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
@@ -296,7 +297,7 @@ def main_loop(SUB):
 			condition2 = ForumPost["PageName"] not in dpu.values(PostHistory_json, '/*/*/PageName')
 			if condition1 and condition2:
 				print(ForumPost["PageName"])
-				post_notes(ForumPost["URL"],SUB)
+				post_notes(ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"],SUB)
 				
 				if PostHistory_json[ForumPost["ForumPage"]]:
 					PostHistory_json[ForumPost["ForumPage"]].pop()
@@ -305,7 +306,7 @@ def main_loop(SUB):
 				PostHistoryPayload_To_Add.pop("ForumPage")
 				PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
 
-				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=os.environ["CLOUD_CUBE_BASE_LOC"]+CloudCubeFilePath)
+				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=CloudCubeFilePath)
 		sleep_func(sleeptime)
 	
 	
@@ -318,5 +319,5 @@ def main_loop(SUB):
 # 
 # =============================================================================
 if __name__=="__main__":
-	main_loop(target_SUB)
+	main_loop(target_SUB_Dict)
 
