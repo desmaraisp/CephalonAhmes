@@ -6,28 +6,28 @@ import numpy as np
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import boto3
-import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import os
-import signal
-import sys
+import os, signal, sys, json, requests
+import dpath.util as dpu
 
 
 
 
+DEBUG_Source_Forum=False #True on release
+DEBUG_subreddit = True #False on release
+CloudCubeFilePath = "/PostHistory.json"
+sleeptime=60
 
-source_forum_is_updates=True #True on release
-DEBUG_subreddit = False #False on release
+
 
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
-warframe_forum_url_latest_update={True:"https://forums.warframe.com/forum/3-pc-update-notes/",False:"https://forums.warframe.com/forum/36-general-discussion/"}[source_forum_is_updates]
+warframe_forum_urls={True:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],False:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
 target_SUB={True:"scrappertest",False:"warframe"}[DEBUG_subreddit]
-
 
 
 
@@ -60,7 +60,7 @@ def start_cloudcube_session():
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_FILE_LOC"])
+	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+CloudCubeFilePath)
 
 
 def process_div_comment(soup):
@@ -222,8 +222,7 @@ def post_notes(url:str,SUB:str):
 
 	
 def fetch_url(forums_url_list, browser):
-	newest_urls_array=[]
-	newest_titles_array=[]
+	newest_posts_on_warframe_forum=[]
 	for forum_url in forums_url_list:
 		success=False
 		while not success:
@@ -245,9 +244,15 @@ def fetch_url(forums_url_list, browser):
 				time.sleep(20)
 				continue
 			success=True
-			newest_urls_array.append(parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')['href'])
-			newest_titles_array.append(parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')['title'])
-	return np.array(newest_urls_array,dtype='<U255'),np.array(newest_titles_array,dtype='<U255')
+			
+			hyperlink_to_newest_post = parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')
+			
+			newest_posts_on_warframe_forum.append({
+				"URL":hyperlink_to_newest_post["href"].strip(),
+				"PageName":hyperlink_to_newest_post["title"].strip(),
+				"ForumPage":forum_url
+			})
+	return newest_posts_on_warframe_forum
 
 
 class signal_handler:
@@ -263,40 +268,37 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-def fetch_cloudcube(cloud_cube_object):
-	cloudcube_result=np.array(cloud_cube_object.get()['Body'].read().decode('utf-8').split('\n'),dtype='<U255')
-	last_posted_urls_array=cloudcube_result[:len(cloudcube_result)//2]
-	last_posted_titles_array=cloudcube_result[len(cloudcube_result)//2:]
-	return last_posted_urls_array,last_posted_titles_array
-
+def fetch_cloudcube_contents(cloud_cube_object):
+	return json.loads(cloud_cube_object.get()['Body'].read().decode('utf-8'))
 
 #%%
 def main_loop(SUB):
-	sleeptime=60
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
-	last_posted_urls_array,last_posted_titles_array=fetch_cloudcube(cloud_cube_object)
+	PostHistory_json=fetch_cloudcube_contents(cloud_cube_object)
 	while True:
 		try:
-			forums_url_list=[warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
-			newest_urls_array,newest_titles_array=fetch_url(forums_url_list, browser)
+			newest_posts_on_warframe_forum=fetch_url(warframe_forum_urls, browser)
 		except TimeoutException:
 			print("Timeout")
 			sleep_func(sleeptime)
 			continue
-		for i in range(len(newest_urls_array)):
-			if newest_urls_array[i] not in last_posted_urls_array:
-				if newest_titles_array[i] not in last_posted_titles_array:
-					print(newest_titles_array[i])
-					post_notes(newest_urls_array[i],SUB)
-					last_posted_urls_array[i+2*len(forums_url_list)]=last_posted_urls_array[i+len(forums_url_list)]
-					last_posted_urls_array[i+len(forums_url_list)]=last_posted_urls_array[i]
-					last_posted_urls_array[i]=newest_urls_array[i]
-					last_posted_titles_array[i+(2*len(forums_url_list))]=last_posted_titles_array[i+len(forums_url_list)]
-					last_posted_titles_array[i+len(forums_url_list)]=last_posted_titles_array[i]
-					last_posted_titles_array[i]=newest_titles_array[i]
-					cloud_cube_object.put(Bucket='cloud-cube',Body="\n".join(np.concatenate((last_posted_urls_array,last_posted_titles_array))).encode('utf-8'),Key=os.environ["CLOUD_CUBE_FILE_LOC"])
+		for i, ForumPost in enumerate(newest_posts_on_warframe_forum):
+			condition1 = ForumPost["URL"] not in dpu.values(PostHistory_json, '/*/*/URL')
+			condition2 = ForumPost["PageName"] not in dpu.values(PostHistory_json, '/*/*/PageName')
+			if condition1 and condition2:
+				print(ForumPost["PageName"])
+				post_notes(ForumPost["URL"],SUB)
+				
+				if PostHistory_json[ForumPost["ForumPage"]]:
+					PostHistory_json[ForumPost["ForumPage"]].pop()
+				
+				PostHistoryPayload_To_Add = ForumPost.copy()
+				PostHistoryPayload_To_Add.pop("ForumPage")
+				PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
+
+				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=os.environ["CLOUD_CUBE_BASE_LOC"]+CloudCubeFilePath)
 		sleep_func(sleeptime)
 	
 	
