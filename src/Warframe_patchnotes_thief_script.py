@@ -189,9 +189,16 @@ def make_submission(SUB, final_post, title, news_flair_id):
 			bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
 
 def post_notes(url:str,SUB:str):
-	with requests.session() as session:
-		response=session.get(url,timeout=20)
-		soup=BeautifulSoup(response.text,'html.parser')
+	success = False
+	while not success:
+		try:
+			response=requests.get(url,timeout=20)
+			response.raise_for_status()
+		except:
+			continue
+		success = True
+		
+	soup=BeautifulSoup(response.text,'html.parser')
 	div_comment=process_div_comment(soup)
 	
 	htt_conf=htt.HTML2Text()
