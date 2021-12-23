@@ -1,4 +1,4 @@
-import praw, prawcore
+import praw
 import html2text as htt
 from bs4 import BeautifulSoup
 import re
@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import os, signal, sys, json, requests, traceback
+import os, signal, sys, json, requests
 import dpath.util as dpu
 
 
