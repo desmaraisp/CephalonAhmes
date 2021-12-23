@@ -17,6 +17,7 @@ import os, signal, sys, json, requests, re, time
 
 DEBUG_Source_Forum=True #False on release
 DEBUG_subreddit = True #False on release
+LOOP_mode=False #True on release
 CloudCubeFilePath = os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json"
 sleeptime=60
 
@@ -335,12 +336,14 @@ def main_loop(SUB):
 
 
 if __name__=="__main__":
-	#main_loop(target_SUB_Dict)
-	post_notes(
-		"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
-		'test',
-		'ForumPost["ForumPage"]',
-		target_SUB_Dict
-	)
+	if LOOP_mode:
+		main_loop(target_SUB_Dict)
+	else:
+		post_notes(
+			"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
+			'',
+			'',
+			target_SUB_Dict
+			)
 
 
