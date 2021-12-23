@@ -1,4 +1,4 @@
-import praw
+import praw, prawcore
 import html2text as htt
 from bs4 import BeautifulSoup
 import re
@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import os, signal, sys, json, requests
+import os, signal, sys, json, requests, traceback
 import dpath.util as dpu
 
 
@@ -30,7 +30,9 @@ target_SUB_Dict_Live={False:"scrappertest",True:"warframe"}
 target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
 target_SUB_Dict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[DEBUG_subreddit]
 
-
+htt_conf=htt.HTML2Text()
+htt_conf.use_automatic_links=True
+htt_conf.body_width=0
 
 
 def start_chrome_browser():
@@ -44,7 +46,12 @@ def start_chrome_browser():
 	chrome_options.add_argument('--disable-dev-shm-usage')
 	return webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
 
-
+def add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(string): #TODO check for necessity
+	def add_character(match):
+		return match.group+"\n\n>!"
+	
+	pattern = '\s+\n' #also includes if one line return, one space and one more line return
+	return re.sub(pattern, add_character, string)
 
 def start_reddit_session():
 	bot_login=praw.Reddit(
@@ -52,7 +59,10 @@ def start_reddit_session():
 		client_secret = os.environ["PRAW_CLIENT_SECRET"],
 		user_agent = 'warframe patch notes retriever bot 0.1',
 		username = os.environ["PRAW_USERNAME"],
-		password = os.environ["PRAW_PASSWORD"],validate_on_submit=True)
+		password = os.environ["PRAW_PASSWORD"],
+		validate_on_submit=True,
+		check_for_async=False
+		)
 	bot_login.validate_on_submit=True
 	return bot_login
 
@@ -64,72 +74,92 @@ def start_cloudcube_session():
 	s3 = session_cloudcube.resource('s3')
 	return s3.Object('cloud-cube',CloudCubeFilePath)
 
+class HTML_Corrections:
+	@staticmethod
+	def strip_BlockQuote_Header(tag):
+		for block in tag.find_all("blockquote"):
+			block.find("div").decompose()
 
-def process_div_comment(soup):
+	@staticmethod
+	def strip_Spoiler_Header(tag):
+		for spoilerheader in tag.find_all("div",{"class":"ipsSpoiler_header"}):
+			spoilerheader.decompose()
+
+	@staticmethod
+	def strip_Edited_Footer(tag):
+		for footer in tag.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}):
+			footer.decompose()
+
+	@staticmethod
+	def strip_image_links_to_avoid_double_links(tag):
+		for image in tag.find_all("img"):
+			for link in image.find_parents('a'):
+				image_source=link["href"]
+				link["href"]=None
+				image["src"]=image_source
+	
+	@staticmethod
+	def convert_mp4_to_link(tag):
+		for source_element in tag.find_all("source",{"type":"video/mp4"}):
+			video_source=source_element["src"]
+			source_element.parent.find('a')['href']=video_source
+				
+			
+	@staticmethod
+	def recursive_function(element, tag_name, soup):
+		for child in element.children:
+			is_leaf_of_tree = (type(child)!="<class 'bs4.element.NavigableString'>")
+			
+			newtag= soup.new_tag(tag_name)
+			child.wrap(newtag)
+			
+			if not is_leaf_of_tree:
+				HTML_Corrections.recursive_function(child, newtag)
+		element.name="div"
+
+	
+	@staticmethod
+	def eliminate_and_propagate_tag(tag_object, tag_name, soup):
+		for element in tag_object.find_all(tag_name, recursive=True):
+			HTML_Corrections.recursive_function(element, tag_name, soup)
+	
+	@staticmethod
+	def propagate_elements_to_children(tag, soup):
+		HTML_Corrections.eliminate_and_propagate_tag(tag, 'strong', soup)
+		HTML_Corrections.eliminate_and_propagate_tag(tag, 'em', soup)
+			
+	@staticmethod
+	def convert_iframes_to_link(tag, soup):
+		for iframe_element in tag.find_all("iframe"):
+			newtag = soup.new_tag("a")
+			newtag.string = iframe_element["src"]
+			iframe_element.wrap(newtag)
+			iframe_element.decompose()
+			
+	@staticmethod
+	def Process_Spoiler(tag):
+		for spoiler in tag.find_all("div",{"class":"ipsSpoiler"}):
+			spoiler_contents=htt_conf.handle(spoiler.decode_contents()).strip()
+			spoiler_contents = ">!"+spoiler_contents
+			spoiler_contents = add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(spoiler_contents)
+			
+			newtag = tag.new_tag("div")
+			newtag.text = spoiler_contents
+			spoiler.wrap(newtag)
+			spoiler.decompose()
+
+
+
+def process_soup_to_pull_post_contents(soup):
 	div_comment=soup.find('div',{"data-role":"commentContent"})
 	
-	for block in div_comment.find_all("blockquote"):
-		block.find("div").decompose()
-			
-	for spoilerheader in div_comment.find_all("div",{"class":"ipsSpoiler_header"}):
-		spoilerheader.decompose()
-	
-	if div_comment.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}):
-		div_comment.find('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}).decompose() #removes edited tags
-	
-	for strong in div_comment.find_all("strong"):
-		if strong.find_all('br')!=[]: #if there's any breakpoints in the strong tag, split the strong into smaller strongs
-			brs_list=[s.extract() for s in strong.find_all('br')]
-			strong_text_list=strong.get_text(strip=True,separator='\n').split('\n')
-			strong.string=strong_text_list[0]
-			for i in strong_text_list[1:]:
-				newstrong=soup.new_tag("strong")
-				newstrong.string=i
-				for br in brs_list:strong.parent.strong.insert_after(br)
-				strong.parent.insert(-1,newstrong)
-		if strong.string:strong.string=strong.string.strip()
-		elif strong.text:
-			if strong.find('a'):
-				for _ in strong.find_all("a"):
-					_.unwrap()
-			new_tag = soup.new_tag("strong")
-			new_tag.string=strong.text.replace('\xa0','').strip()
-			strong.insert_after(new_tag)
-			strong.decompose()
-				
-	
-	for i in div_comment.find_all("img"):
-		if i.parent.name=="a":
-			image_source=i.parent["href"]
-			i.parent["href"]=None
-			i["src"]=image_source
-		elif i.parent.parent.name=="a":
-			image_source=i.parent.parent["href"]
-			i.parent.parent["href"]=None
-			i["src"]=image_source
-	
-	for i in div_comment.find_all("source",{"type":"video/mp4"}):
-		video_source=i["src"]
-		i.parent.find('a')['href']=video_source
-	
-	
-	for i in div_comment.find_all("iframe",{"class":'ipsEmbed_finishedLoading'}):
-		i.string=i['src'].replace("?do=embed",'')
-			
-	for i in div_comment.find_all('div',{"class":'ipsEmbeddedVideo'}):
-		i.find('iframe').string=i.find('iframe')['data-embed-src']
-
-	for i in div_comment.find_all('iframe',{"allow":"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"}):
-		i.string=i["data-embed-src"]
-	
-	for i in div_comment.find_all('iframe',{"allowfullscreen frameborder":"0"}):
-		i.string=i["src"]
-	
-	for em in div_comment.find_all("em"):
-		for strong in em.find_all("strong"):
-			strong.string=f"**{strong.string}**"
-			strong.unwrap()
-		if em.string:em.string=em.string.strip()
+	HTML_Corrections.strip_BlockQuote_Header(div_comment)
+	HTML_Corrections.strip_Spoiler_Header(div_comment)
+	HTML_Corrections.strip_Edited_Footer(div_comment)
+	HTML_Corrections.strip_image_links_to_avoid_double_links(div_comment)
+	HTML_Corrections.convert_mp4_to_link(div_comment)
+	HTML_Corrections.convert_iframes_to_link(div_comment, soup)
+	HTML_Corrections.propagate_elements_to_children(div_comment, soup)
 			
 	for table in div_comment.find_all('table'):
 		for ps in table.findChildren('p'):
@@ -142,6 +172,8 @@ def process_div_comment(soup):
 				td.string="-"
 			elif not td.text.strip():
 				td.string="-"
+	
+	HTML_Corrections.Process_Spoiler(div_comment)
 			
 	return div_comment
 
@@ -149,7 +181,7 @@ def Check_Title_Validity(title, ForumPage):
 	title=title.replace("PSA: ","").strip()
 	
 	if "+" in title and ForumPage == "https://forums.warframe.com/forum/3-pc-update-notes/":
-		return title, False
+		return title, False #Excludes hotfixes as they are mostly duplicates
 	return title, True
 
 def has_been_posted_to_subreddit(title, SUB):
@@ -164,10 +196,10 @@ def split_content_for_character_limit(content, limit, separators = ['\n']):
 	content_before_limit = content[:limit]
 	for separator in separators:
 		contentSeparatorIndexes=[m.start() for m in re.finditer(separator, content_before_limit)]
-		if contentSeparatorIndexes.len!=1:
+		if contentSeparatorIndexes:
 			break
 
-	return content[contentSeparatorIndexes:], content[:contentSeparatorIndexes]
+	return content[:contentSeparatorIndexes[-1]], content[contentSeparatorIndexes[-1]:]
 
 
 def make_submission(SUB, content, title, news_flair_id):
@@ -176,9 +208,10 @@ def make_submission(SUB, content, title, news_flair_id):
 	
 	Content_Before_Limit, content = split_content_for_character_limit(content, 40000, ['\n\n', '\n'])
 	
-	bot_login.subreddit(SUB).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)
+	bot_login.subreddit(SUB).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
+		
 	for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something",title+", link: "+submission.url)
+		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something: {} \nat link: {}".format(title, submission.url))
 		
 	while content:
 		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
@@ -197,15 +230,10 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 		success = True
 		
 	soup=BeautifulSoup(response.text,'html.parser')
-	div_comment=process_div_comment(soup)
-	
-	htt_conf=htt.HTML2Text()
-	htt_conf.use_automatic_links=True
-	htt_conf.body_width=0
-	post_contents=htt_conf.handle(div_comment.decode_contents())
-	
-	#strip superfluous parts/correct mistakes
-	post_contents=post_contents.replace("![",'[')
+	post_contents_HTML=process_soup_to_pull_post_contents(soup)
+
+	post_contents=htt_conf.handle(post_contents_HTML.decode_contents())
+	post_contents=post_contents.replace("![",'[')  #Because Reddit's implmentation of markdown does not support inline links like this: ![]()
 
 
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
@@ -293,7 +321,7 @@ def main_loop(SUB):
 				print(ForumPost["PageName"])
 				post_notes(ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"],SUB)
 				
-				if PostHistory_json[ForumPost["ForumPage"]]:
+				if len(PostHistory_json[ForumPost["ForumPage"]])>=3:
 					PostHistory_json[ForumPost["ForumPage"]].pop()
 				
 				PostHistoryPayload_To_Add = ForumPost.copy()
@@ -305,13 +333,15 @@ def main_loop(SUB):
 	
 	
 #%%
+post_notes(
+	"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
+	'test',
+	'ForumPost["ForumPage"]',
+	target_SUB_Dict
+)
 
-# =============================================================================
-# post_notes("""
-# https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/
-# """,'scrappertest')
-# 
-# =============================================================================
+
 if __name__=="__main__":
-	main_loop(target_SUB_Dict)
+	#main_loop(target_SUB_Dict)
+	pass
 
