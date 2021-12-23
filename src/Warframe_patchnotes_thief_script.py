@@ -1,17 +1,16 @@
 import praw
 import html2text as htt
 from bs4 import BeautifulSoup
-import re
 import numpy as np
 from webdriver_manager.chrome import ChromeDriverManager
-import time, boto3
+import boto3
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import os, signal, sys, json, requests
 import dpath.util as dpu
+import os, signal, sys, json, requests, re, time
 
 
 
@@ -333,15 +332,15 @@ def main_loop(SUB):
 	
 	
 #%%
-post_notes(
-	"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
-	'test',
-	'ForumPost["ForumPage"]',
-	target_SUB_Dict
-)
 
 
 if __name__=="__main__":
 	#main_loop(target_SUB_Dict)
-	pass
+	post_notes(
+		"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
+		'test',
+		'ForumPost["ForumPage"]',
+		target_SUB_Dict
+	)
+
 
