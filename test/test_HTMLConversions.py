@@ -1,26 +1,9 @@
-import signal
-from selenium.common.exceptions import TimeoutException
 import Warframe_patchnotes_thief_script as wpts
-import numpy as np
-
-def integration_test():
-	browser=wpts.start_chrome_browser()
-	signal.signal(signal.SIGTERM,wpts.signal_handler(browser))
-	while True:
-		try:
-			forums_url_list=[wpts.warframe_forum_url_latest_update,'https://forums.warframe.com/forum/123-developer-workshop-update-notes/','https://forums.warframe.com/forum/170-announcements-events/']
-			newest_urls_array,newest_titles_array=wpts.fetch_url(forums_url_list, browser)
-			break
-		except TimeoutException:
-			print("Timeout")
-			wpts.sleep_func(4)
-			continue
-	selected_url=np.random.choice(newest_urls_array)
-	print(selected_url)
-	wpts.post_notes(selected_url,'scrappertest')
-	wpts.sleep_func(4)
-	browser.quit()
-		
 
 
 
+
+def test_add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row():
+	Initial_String = "\n I am a first paragraph. \n \n I am a second paragraph that needs a spoiler tag. \n I am a third paragraph that does not need a tag, before or after. \n\n"
+	Processed_string = wpts.add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(Initial_String)
+	assert Processed_string == "I am a first paragraph.\n\n>!I am a second paragraph that needs a spoiler tag. \n I am a third paragraph that does not need a tag, before or after."

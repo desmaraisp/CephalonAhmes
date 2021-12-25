@@ -46,10 +46,10 @@ def start_chrome_browser():
 
 def add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(string):
 	def add_character(match):
-		return match.group+"\n\n>!"
+		return "\n\n>!"
 	
-	pattern = '\s+\n' #also includes if one line return, one space and one more line return
-	return re.sub(pattern, add_character, string)
+	pattern = r" *\n\s*\n *" #also includes if one line return, one space and one more line return
+	return re.sub(pattern, add_character, string.strip())
 
 def start_reddit_session():
 	bot_login=praw.Reddit(
@@ -137,7 +137,7 @@ class HTML_Corrections:
 	@staticmethod
 	def Process_Spoiler(tag):
 		for spoiler in tag.find_all("div",{"class":"ipsSpoiler"}):
-			spoiler_contents=htt_conf.handle(spoiler.decode_contents()).strip()
+			spoiler_contents=htt_conf.handle(spoiler.decode_contents())
 			spoiler_contents = ">!"+spoiler_contents
 			spoiler_contents = add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(spoiler_contents)
 			
@@ -235,7 +235,7 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 
 	post_contents=htt_conf.handle(post_contents_HTML.decode_contents())
 	post_contents=post_contents.replace("![",'[')  #Because Reddit's implmentation of markdown does not support inline links like this: ![]()
-
+	post_contents=post_contents.replace("\u200b",'')  #Zero-width spaces are evil
 
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
 	if not SubmissionValidTitle:
