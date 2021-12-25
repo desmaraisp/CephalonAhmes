@@ -148,7 +148,19 @@ class HTML_Corrections:
 			spoiler.wrap(newtag)
 			spoiler.decompose()
 
-
+	@staticmethod
+	def Process_Tables(tag):
+		for table in tag.find_all('table'):
+			for ps in table.findChildren('p'):
+				for obj in ps.find_all(recursive=True):
+					obj.unwrap()
+				ps.unwrap()
+			for tr in table.findChildren('tr'):
+				td=tr.find('td')
+				if not td.text:
+					td.string="-"
+				elif not td.text.strip():
+					td.string="-"
 
 def process_soup_to_pull_post_contents(soup):
 	div_comment=soup.find('div',{"data-role":"commentContent"})
@@ -160,19 +172,7 @@ def process_soup_to_pull_post_contents(soup):
 	HTML_Corrections.convert_mp4_to_link(div_comment)
 	HTML_Corrections.convert_iframes_to_link(div_comment, soup)
 	HTML_Corrections.propagate_elements_to_children(div_comment, soup)
-			
-	for table in div_comment.find_all('table'):
-		for ps in table.findChildren('p'):
-			for obj in ps.find_all(recursive=True):
-				obj.unwrap()
-			ps.unwrap()
-		for tr in table.findChildren('tr'):
-			td=tr.find('td')
-			if not td.text:
-				td.string="-"
-			elif not td.text.strip():
-				td.string="-"
-	
+	HTML_Corrections.Process_Tables(div_comment)
 	HTML_Corrections.Process_Spoiler(div_comment)
 			
 	return div_comment
@@ -193,6 +193,8 @@ def get_subreddit_flair_id(SUB):
 	return next((item.get('id') for item in flair_template if item["text"] == "News"), next((item.get('id') for item in flair_template if item["text"] == "Discussion"), None))
 
 def split_content_for_character_limit(content, limit, separators = ['\n']):
+	if len(content)<=limit:
+		return content, ''
 	content_before_limit = content[:limit]
 	for separator in separators:
 		contentSeparatorIndexes=[m.start() for m in re.finditer(separator, content_before_limit)]
@@ -211,7 +213,7 @@ def make_submission(SUB, content, title, news_flair_id):
 	bot_login.subreddit(SUB).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
 		
 	for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-		bot_login.redditor("desmaraisp").message("Cephalon Ahmes has posted something: {} \nat link: {}".format(title, submission.url))
+		bot_login.redditor("desmaraisp").message(title, submission.url)
 		
 	while content:
 		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
@@ -341,7 +343,7 @@ if __name__=="__main__":
 	else:
 		post_notes(
 			"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
-			'',
+			'TestSubmssion',
 			'',
 			target_SUB_Dict
 			)
