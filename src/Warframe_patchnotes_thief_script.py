@@ -17,7 +17,6 @@ import os, signal, sys, json, requests, re, time
 
 DEBUG_Source_Forum=True #False on release
 DEBUG_subreddit = True #False on release
-CloudCubeFilePath = os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json"
 sleeptime=60
 
 
@@ -25,7 +24,7 @@ sleeptime=60
 sort_menu_xpath='//a[@data-role="sortButton"]'
 post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
 warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
-target_SUB_Dict_Live={False:"scrappertest",True:"warframe"}
+target_SUB_Dict_Live={False:"scrappertest",True:"warframe"} #True for primary subreddit, False for backup option
 target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
 target_SUB_Dict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[DEBUG_subreddit]
 
@@ -71,7 +70,7 @@ def start_cloudcube_session():
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',CloudCubeFilePath)
+	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json")
 
 class HTML_Corrections:
 	@staticmethod
@@ -336,7 +335,7 @@ def main_loop(SUB):
 				PostHistoryPayload_To_Add.pop("ForumPage")
 				PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
 
-				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=CloudCubeFilePath)
+				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json")
 		sleep_func(sleeptime)
 	
 	
