@@ -17,7 +17,6 @@ import os, signal, sys, json, requests, re, time
 
 DEBUG_Source_Forum=True #False on release
 DEBUG_subreddit = True #False on release
-LOOP_mode=False #True on release
 CloudCubeFilePath = os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json"
 sleeptime=60
 
@@ -46,7 +45,7 @@ def start_chrome_browser():
 	chrome_options.add_argument('--disable-dev-shm-usage')
 	return webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
 
-def add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(string): #TODO check for necessity
+def add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(string):
 	def add_character(match):
 		return match.group+"\n\n>!"
 	
@@ -228,6 +227,7 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 			response=requests.get(url,timeout=20)
 			response.raise_for_status()
 		except:
+			time.sleep(5)
 			continue
 		success = True
 		
@@ -252,38 +252,44 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 	news_flair_id= get_subreddit_flair_id(DestinationSubreddit)
 	make_submission(DestinationSubreddit, post_contents, SubmissionTitle, news_flair_id)
 
-	
-def fetch_url(forums_url_list, browser):
-	newest_posts_on_warframe_forum=[]
-	for forum_url in forums_url_list:
-		success=False
-		while not success: #TODO update this with requests if possible
+def browser_get_updated_forum_page_source(forum_url, browser):
+	success=False
+	while not success:
+		try:
 			browser.get(forum_url)
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,sort_menu_xpath))).click()
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
 			WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
-			soup=BeautifulSoup(browser.page_source,"html.parser")
-			parent_of_time_element_of_thread_list=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
-			list_of_all_dates=[]
-			for i in parent_of_time_element_of_thread_list:
-				time_element_of_thread=i.findChild('time',recursive=True)['datetime']
-				date=time_element_of_thread.strip('Z')
-				list_of_all_dates.append(date)
-			try:
-				arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
-			except ValueError:
-				print("404")
-				time.sleep(20)
-				continue
-			success=True
-			
-			hyperlink_to_newest_post = parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')
-			
-			newest_posts_on_warframe_forum.append({
-				"URL":hyperlink_to_newest_post["href"].strip(),
-				"PageName":hyperlink_to_newest_post["title"].strip(),
-				"ForumPage":forum_url
-			})
+		except:
+			time.sleep(5)
+			continue
+		if browser.find_element_by_tag_name('time'):
+			return browser.page_source
+		else:
+			time.sleep(5)
+			continue
+	
+def fetch_url_list(forums_url_list, browser):
+	newest_posts_on_warframe_forum=[]
+	for forum_url in forums_url_list:
+		page_source = browser_get_updated_forum_page_source(forum_url, browser)
+		soup=BeautifulSoup(page_source,"html.parser")
+		parent_of_time_element_of_thread_list=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
+		
+		list_of_all_dates=[]
+		for i in parent_of_time_element_of_thread_list:
+			time_element_of_thread=i.findChild('time',recursive=True)['datetime']
+			date=time_element_of_thread.strip('Z')
+			list_of_all_dates.append(date)
+
+		arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
+		hyperlink_to_newest_post = parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')
+		
+		newest_posts_on_warframe_forum.append({
+			"URL":hyperlink_to_newest_post["href"].strip(),
+			"PageName":hyperlink_to_newest_post["title"].strip(),
+			"ForumPage":forum_url
+		})
 	return newest_posts_on_warframe_forum
 
 
@@ -311,7 +317,7 @@ def main_loop(SUB):
 	PostHistory_json=fetch_cloudcube_contents(cloud_cube_object)
 	while True:
 		try:
-			newest_posts_on_warframe_forum=fetch_url(warframe_forum_urls, browser)
+			newest_posts_on_warframe_forum=fetch_url_list(warframe_forum_urls, browser)
 		except TimeoutException:
 			print("Timeout")
 			sleep_func(sleeptime)
@@ -338,14 +344,5 @@ def main_loop(SUB):
 
 
 if __name__=="__main__":
-	if LOOP_mode:
-		main_loop(target_SUB_Dict)
-	else:
-		post_notes(
-			"https://forums.warframe.com/topic/1253565-update-29100-corpus-proxima-the-new-railjack/",
-			'TestSubmssion',
-			'',
-			target_SUB_Dict
-			)
-
+	main_loop(target_SUB_Dict)
 
