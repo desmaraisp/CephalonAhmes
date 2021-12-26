@@ -106,15 +106,15 @@ class HTML_Corrections:
 	@staticmethod
 	def recursive_function(element, tag_name, soup):
 		for child in element.children:
-			is_leaf_of_tree = (type(child)!="<class 'bs4.element.NavigableString'>")
-			
-			newtag= soup.new_tag(tag_name)
-			child.wrap(newtag)
+			is_leaf_of_tree = (str(type(child))=="<class 'bs4.element.NavigableString'>")
 			
 			if not is_leaf_of_tree:
-				HTML_Corrections.recursive_function(child, newtag)
-		element.name="div"
-
+				HTML_Corrections.recursive_function(child, tag_name, soup)
+			else:
+				newtag= soup.new_tag(tag_name)
+				child.wrap(newtag)
+		if element.name==tag_name:
+			element.name="div"
 	
 	@staticmethod
 	def eliminate_and_propagate_tag(tag_object, tag_name, soup):
