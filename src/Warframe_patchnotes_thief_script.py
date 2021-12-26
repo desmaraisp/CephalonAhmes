@@ -48,7 +48,7 @@ def add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(string):
 	def add_character(match):
 		return "\n\n>!"
 	
-	pattern = r" *\n\s*\n *" #also includes if one line return, one space and one more line return
+	pattern = r"\s*[\r\n]\s*[\r\n]\s*" #Two line breaks (either \n or \r) with any number of whitespaces around and between
 	return re.sub(pattern, add_character, string.strip())
 
 def start_reddit_session():

@@ -19,7 +19,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install nose
+        pip install pytest
     - name: Run Tests
       env:
         PRAW_CLIENT_ID: ${{ secrets.PRAW_CLIENT_ID }}
@@ -27,4 +27,4 @@ jobs:
         PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
         PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
       run: |
-        nosetests
+        python -m pytest
