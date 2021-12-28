@@ -1,5 +1,6 @@
 import src.Warframe_patchnotes_thief_script as wpts
 from bs4 import BeautifulSoup
+import html
 
 
 def test_add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row():
@@ -9,24 +10,15 @@ def test_add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row():
 	
 
 def test_strip_BlockQuote_Header():
-	InitialString = """
-		<blockquote>
-			<div>HeaderContent</div>
-			<div>StringContent</div>
-		</blockquote>
-	"""
+	InitialString = """<blockquote><div>HeaderContent</div><div>StringContent</div></blockquote>"""
 	
-	DesiredResult = """
-		<blockquote>
-			<div>StringContent</div>
-		</blockquote>
-	"""
+	DesiredResult = """<blockquote><div>StringContent</div></blockquote>"""
 	
 	tag = BeautifulSoup(InitialString, 'html.parser')
 
 	wpts.HTML_Corrections.strip_BlockQuote_Header(tag)
 	
-	assert tag.decode_contents().replace("\n", "") == BeautifulSoup(DesiredResult, 'html.parser').decode_contents().replace("\n", "")
+	assert tag.decode_contents()== DesiredResult
 
 	
 	
@@ -86,3 +78,26 @@ def test_eliminate_and_propagate_tag():
 	wpts.HTML_Corrections.eliminate_and_propagate_tag(soup, "strong", soup)
 	
 	assert soup.decode_contents()=="""<div><div><strong>String1</strong><a><strong>String2</strong></a><strong>String3</strong></div><div><div><strong>String4</strong><a><strong>String5</strong></a></div></div></div>"""
+
+
+def test_convert_iframes_to_link():
+	InitialString = """<iframe src="iframesrc"></iframe>"""
+	soup = BeautifulSoup(InitialString, 'html.parser')
+	
+	wpts.HTML_Corrections.convert_iframes_to_link(soup, soup)
+	
+	assert soup.decode_contents()=="""<a>iframesrc</a>"""
+
+def test_Process_Spoiler(): #TODO Make sure that behavior is intended.
+	InitialString = """<span><div class="ipsSpoiler"> String1<strong>String2</strong><br> String3</div></span>"""
+	soup = BeautifulSoup(InitialString, 'html.parser')
+	
+	wpts.HTML_Corrections.Process_Spoiler(soup)
+	
+	assert html.unescape(soup.decode_contents())=="""<span><div>>!String1 **String2**  \nString3</div></span>"""
+
+def test_Process_Spoiler2():
+	pass
+
+def test_Process_Tables():
+	pass

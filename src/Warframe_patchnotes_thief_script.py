@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 import dpath.util as dpu
-import os, signal, sys, json, requests, re, time
+import os, signal, sys, json, requests, re, time, html
 
 
 
@@ -142,7 +142,7 @@ class HTML_Corrections:
 			spoiler_contents = add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(spoiler_contents)
 			
 			newtag = tag.new_tag("div")
-			newtag.text = spoiler_contents
+			newtag.string = spoiler_contents
 			spoiler.wrap(newtag)
 			spoiler.decompose()
 
@@ -193,25 +193,33 @@ def get_subreddit_flair_id(SUB):
 def split_content_for_character_limit(content, limit, separators = ['\n']):
 	if len(content)<=limit:
 		return content, ''
+	
+	CurrentSeparatorLen = -1
 	content_before_limit = content[:limit]
 	for separator in separators:
 		contentSeparatorIndexes=[m.start() for m in re.finditer(separator, content_before_limit)]
 		if contentSeparatorIndexes:
+			CurrentSeparatorLen = len(separator)
 			break
+	
+	if CurrentSeparatorLen!=-1:
+		return content[:contentSeparatorIndexes[-1]], content[contentSeparatorIndexes[-1]+CurrentSeparatorLen:]
+	else:
+		return content[:limit], content[limit:]
 
-	return content[:contentSeparatorIndexes[-1]], content[contentSeparatorIndexes[-1]:]
 
-
-def make_submission(SUB, content, title, news_flair_id):
+def make_submission(SubredditDict, content, title):
 	#Splitting and posting
 	bot_login=start_reddit_session()
+	DestinationSubreddit = SubredditDict[not (has_been_posted_to_subreddit(title, SubredditDict[True]))]
+	news_flair_id= get_subreddit_flair_id(DestinationSubreddit)
 	
 	Content_Before_Limit, content = split_content_for_character_limit(content, 40000, ['\n\n', '\n'])
 	
-	bot_login.subreddit(SUB).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
+	bot_login.subreddit(DestinationSubreddit).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
 		
 	for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-		bot_login.redditor("desmaraisp").message(title, submission.url)
+		bot_login.redditor(os.environ["PRAW_USERNAME"]).message(title, submission.url)
 		
 	while content:
 		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
@@ -219,7 +227,7 @@ def make_submission(SUB, content, title, news_flair_id):
 			comment.reply(Content_Before_Limit.strip()).disable_inbox_replies()
 		
 
-def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
+def GetNotes_From_Request(url:str):
 	success = False
 	while not success:
 		try:
@@ -229,27 +237,25 @@ def post_notes(url:str, SubmissionTitle:str, ForumSourceURL,SubredditDict:str):
 			time.sleep(5)
 			continue
 		success = True
-		
-	soup=BeautifulSoup(response.text,'html.parser')
+	return response.text
+
+def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSourceURL):
+	soup=BeautifulSoup(ResponseContent,'html.parser')
 	post_contents_HTML=process_soup_to_pull_post_contents(soup)
 
 	post_contents=htt_conf.handle(post_contents_HTML.decode_contents())
 	post_contents=post_contents.replace("![",'[')  #Because Reddit's implmentation of markdown does not support inline links like this: ![]()
-	post_contents=post_contents.replace("\u200b",'')  #Zero-width spaces are evil
+	post_contents=html.unescape(post_contents)
 
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
 	if not SubmissionValidTitle:
 		print(f"Submission Ignored with title {SubmissionTitle}.")
 		return
-
-	DestinationSubreddit = SubredditDict[not (has_been_posted_to_subreddit(SubmissionTitle, SubredditDict[True]))]
-
 	
-	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)"
-	post_contents="[Source]("+url+")\n\n"+post_contents+automatic_message
+	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(os.environ["PRAW_USERNAME"])
+	post_contents="[Source]({})\n\n{}{}".fotmat(url,post_contents,automatic_message)
 
-	news_flair_id= get_subreddit_flair_id(DestinationSubreddit)
-	make_submission(DestinationSubreddit, post_contents, SubmissionTitle, news_flair_id)
+	return post_contents, SubmissionTitle
 
 def browser_get_updated_forum_page_source(forum_url, browser):
 	success=False
@@ -267,22 +273,26 @@ def browser_get_updated_forum_page_source(forum_url, browser):
 		else:
 			time.sleep(5)
 			continue
+
+def parse_forum_page_to_pull_latest_posts(page_source):
+	soup=BeautifulSoup(page_source,"html.parser")
+	parent_of_time_element_of_thread_list=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
 	
-def fetch_url_list(forums_url_list, browser):
+	list_of_all_dates=[]
+	for i in parent_of_time_element_of_thread_list:
+		time_element_of_thread=i.findChild('time',recursive=True)['datetime']
+		date=time_element_of_thread.strip('Z')
+		list_of_all_dates.append(date)
+
+	arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
+	return parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')
+
+
+def fetch_and_parse_forum_page_to_pull_latest_posts(forums_url_list, browser):
 	newest_posts_on_warframe_forum=[]
 	for forum_url in forums_url_list:
 		page_source = browser_get_updated_forum_page_source(forum_url, browser)
-		soup=BeautifulSoup(page_source,"html.parser")
-		parent_of_time_element_of_thread_list=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
-		
-		list_of_all_dates=[]
-		for i in parent_of_time_element_of_thread_list:
-			time_element_of_thread=i.findChild('time',recursive=True)['datetime']
-			date=time_element_of_thread.strip('Z')
-			list_of_all_dates.append(date)
-
-		arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
-		hyperlink_to_newest_post = parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')
+		hyperlink_to_newest_post = parse_forum_page_to_pull_latest_posts(page_source)
 		
 		newest_posts_on_warframe_forum.append({
 			"URL":hyperlink_to_newest_post["href"].strip(),
@@ -308,25 +318,23 @@ def sleep_func(sleeptime):
 def fetch_cloudcube_contents(cloud_cube_object):
 	return json.loads(cloud_cube_object.get()['Body'].read().decode('utf-8'))
 
-#%%
-def main_loop(SUB):
+def main_loop(SubredditDict):
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
 	PostHistory_json=fetch_cloudcube_contents(cloud_cube_object)
 	while True:
-		try:
-			newest_posts_on_warframe_forum=fetch_url_list(warframe_forum_urls, browser)
-		except TimeoutException:
-			print("Timeout")
-			sleep_func(sleeptime)
-			continue
+		newest_posts_on_warframe_forum=fetch_and_parse_forum_page_to_pull_latest_posts(warframe_forum_urls, browser)
 		for i, ForumPost in enumerate(newest_posts_on_warframe_forum):
 			condition1 = ForumPost["URL"] not in dpu.values(PostHistory_json, '/*/*/URL')
 			condition2 = ForumPost["PageName"] not in dpu.values(PostHistory_json, '/*/*/PageName')
 			if condition1 and condition2:
 				print(ForumPost["PageName"])
-				post_notes(ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"],SUB)
+				
+				ResponseContent = GetNotes_From_Request(ForumPost["URL"])
+				SubmissionContents, SubmussionTitle = Get_and_Parse_Notes(ResponseContent, ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"])
+				
+				make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
 				
 				if len(PostHistory_json[ForumPost["ForumPage"]])>=3:
 					PostHistory_json[ForumPost["ForumPage"]].pop()
