@@ -8,7 +8,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 import dpath.util as dpu
 import os, signal, sys, json, requests, re, time, html
 
@@ -276,16 +275,16 @@ def browser_get_updated_forum_page_source(forum_url, browser):
 
 def parse_forum_page_to_pull_latest_posts(page_source):
 	soup=BeautifulSoup(page_source,"html.parser")
-	parent_of_time_element_of_thread_list=soup.find_all('div',{'class':'ipsDataItem_meta ipsType_reset ipsType_light ipsType_blendLinks'})
+	Thread_element_root=soup.find_all('div',{'class':'ipsDataItem_main'})
 	
 	list_of_all_dates=[]
-	for i in parent_of_time_element_of_thread_list:
+	for i in Thread_element_root:
 		time_element_of_thread=i.findChild('time',recursive=True)['datetime']
 		date=time_element_of_thread.strip('Z')
 		list_of_all_dates.append(date)
 
 	arg_of_most_recent_thread=np.array(list_of_all_dates,dtype='datetime64').argmax()
-	return parent_of_time_element_of_thread_list[arg_of_most_recent_thread].parent.find('a')
+	return Thread_element_root[arg_of_most_recent_thread].findChild('a',recursive=True)
 
 
 def fetch_and_parse_forum_page_to_pull_latest_posts(forums_url_list, browser):
