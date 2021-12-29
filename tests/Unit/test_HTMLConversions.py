@@ -102,7 +102,7 @@ def test_convert_iframes_to_link():
 	
 	assert soup.decode_contents()=="""<a>iframesrc</a>"""
 
-def test_Process_Spoiler(): #TODO Make sure that behavior is intended.
+def test_Process_Spoiler():
 	InitialString = """
 		<span>
 			<div class="ipsSpoiler"> String1<strong>String2</strong><br> String3</div>

@@ -134,19 +134,19 @@ class HTML_Corrections:
 			iframe_element.decompose()
 			
 	@staticmethod
-	def Process_Spoiler(tag):
+	def Process_Spoiler(soup):
 		def StringLiteralTransform(string):
 			
 			pattern = r"[\r\n]"
 			return re.sub(pattern, "\\n", string.strip())
 
 		
-		for spoiler in tag.find_all("div",{"class":"ipsSpoiler"}):
+		for spoiler in soup.find_all("div",{"class":"ipsSpoiler"}):
 			spoiler_contents=htt_conf.handle(spoiler.decode_contents())
 			spoiler_contents = add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(spoiler_contents)
 			spoiler_contents = ">!"+spoiler_contents
 			
-			newtag = tag.new_tag("div")
+			newtag = soup.new_tag("div")
 			newtag.string = StringLiteralTransform(spoiler_contents)
 			spoiler.wrap(newtag)
 			spoiler.decompose()
@@ -171,7 +171,7 @@ def process_soup_to_pull_post_contents(soup):
 	HTML_Corrections.convert_iframes_to_link(div_comment, soup)
 	HTML_Corrections.propagate_elements_to_children(div_comment, soup)
 	HTML_Corrections.Process_Tables(div_comment)
-	HTML_Corrections.Process_Spoiler(div_comment)
+	HTML_Corrections.Process_Spoiler(soup)
 			
 	return div_comment
 
@@ -254,7 +254,7 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 		return
 	
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(os.environ["PRAW_USERNAME"])
-	post_contents="[Source]({})\n\n{}{}".fotmat(url,post_contents,automatic_message)
+	post_contents="[Source]({})\n\n{}{}".format(url,post_contents,automatic_message)
 
 	return post_contents, SubmissionTitle
 

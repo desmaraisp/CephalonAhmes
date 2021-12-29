@@ -46,5 +46,15 @@ def test_parse_forum_page_to_pull_latest_posts():
 	assert ResultHyperlink["href"]=="https://forums.warframe.com/topic/1293591-the-new-war-hotfix-3105/"
 	assert ResultHyperlink["title"].strip() == "The New War: Hotfix 31.0.5"
 
-def Get_and_Parse_Notes():
-	pass
+def test_Get_and_Parse_Notes():
+	with open("tests/Unit/source_for_test_Get_and_Parse_Notes.html") as file:
+		contents = file.read().replace("\t","").replace("\n","")
+	
+	with open("tests/Unit/Expected_for_test_Get_and_Parse_Notes.html") as file:
+		Expected = file.read().replace("\t","").replace("\n","")
+	
+	Result = wpts.Get_and_Parse_Notes(contents, "https://test.com", "TitleTest", "ForumSource")
+
+	assert Result[0] == Expected
+
+test_Get_and_Parse_Notes()
