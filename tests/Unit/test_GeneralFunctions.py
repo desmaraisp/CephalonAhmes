@@ -39,7 +39,7 @@ def test_split_content_for_character_limit():
 	assert result == ("Test","Paragraph1")
 
 def test_parse_forum_page_to_pull_latest_posts():
-	with open("tests/source_for_test_parse_forum_page_to_pull_latest_posts.html") as file:
+	with open("tests/Unit/source_for_test_parse_forum_page_to_pull_latest_posts.html") as file:
 		contents = file.read()
 	
 	ResultHyperlink = wpts.parse_forum_page_to_pull_latest_posts(contents)
