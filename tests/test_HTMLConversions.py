@@ -77,7 +77,21 @@ def test_eliminate_and_propagate_tag():
 	
 	wpts.HTML_Corrections.eliminate_and_propagate_tag(soup, "strong", soup)
 	
-	assert soup.decode_contents()=="""<div><div><strong>String1</strong><a><strong>String2</strong></a><strong>String3</strong></div><div><div><strong>String4</strong><a><strong>String5</strong></a></div></div></div>"""
+	assert soup.decode_contents()=="""
+		<div>
+			<div>
+				<strong>String1</strong>
+				<a><strong>String2</strong></a>
+				<strong>String3</strong>
+			</div>
+			<div>
+				<div>
+					<strong>String4</strong>
+					<a><strong>String5</strong></a>
+				</div>
+			</div>
+		</div>
+	""".replace("\t","").replace("\n","")
 
 
 def test_convert_iframes_to_link():
@@ -89,7 +103,12 @@ def test_convert_iframes_to_link():
 	assert soup.decode_contents()=="""<a>iframesrc</a>"""
 
 def test_Process_Spoiler(): #TODO Make sure that behavior is intended.
-	InitialString = """<span><div class="ipsSpoiler"> String1<strong>String2</strong><br> String3</div></span>"""
+	InitialString = """
+		<span>
+			<div class="ipsSpoiler"> String1<strong>String2</strong><br> String3</div>
+		</span>
+	""".replace("\t","").replace("\n","")
+	
 	soup = BeautifulSoup(InitialString, 'html.parser')
 	
 	wpts.HTML_Corrections.Process_Spoiler(soup)
@@ -97,7 +116,68 @@ def test_Process_Spoiler(): #TODO Make sure that behavior is intended.
 	assert html.unescape(soup.decode_contents())=="""<span><div>>!String1 **String2**  \nString3</div></span>"""
 
 def test_Process_Spoiler2():
-	pass
+	InitialString = """
+		<span>
+			<div class="ipsSpoiler">
+				<ul>
+					<li>Item1</li>
+					<li>Item2</li>
+				</ul>
+			</div>
+		</span>
+	""".replace("\t","").replace("\n","")
+	
+	soup = BeautifulSoup(InitialString, 'html.parser')
+	
+	wpts.HTML_Corrections.Process_Spoiler(soup)
+	
+	assert html.unescape(soup.decode_contents())=="""<span><div>>!* Item1\n  * Item2</div></span>"""
 
 def test_Process_Tables():
-	pass
+	InitialString = """
+	<table><tbody><tr>
+			<td>
+				<p>Test</p>
+				<p>
+					<strong>Tactical</strong>
+				</p>
+			</td>
+			<td>
+				<p>
+					<strong>Piloting<br>Test</strong>
+				</p>
+			</td>
+			<td>
+				<p>
+					<strong>Gunnery</strong>
+				</p>
+			</td>
+			<td>
+				<p>
+					<strong>&nbsp;</strong>
+				</p>
+			</td>
+		</tr></tbody></table>
+	""".replace("\t","").replace("\n","")
+	
+	Expected = """
+		<table><tbody><tr>
+			<td>
+				TestTactical
+			</td>
+			<td>
+				PilotingTest
+			</td>
+			<td>
+				Gunnery
+			</td>
+			<td>-</td>
+		</tr></tbody></table>
+	""".replace("\t","").replace("\n","")
+
+
+	soup = BeautifulSoup(InitialString, 'html.parser')
+	
+	wpts.HTML_Corrections.Process_Tables(soup)
+	
+	assert soup.decode_contents()==Expected

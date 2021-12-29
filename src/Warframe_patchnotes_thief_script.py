@@ -135,29 +135,30 @@ class HTML_Corrections:
 			
 	@staticmethod
 	def Process_Spoiler(tag):
+		def StringLiteralTransform(string):
+			
+			pattern = r"[\r\n]"
+			return re.sub(pattern, "\\n", string.strip())
+
+		
 		for spoiler in tag.find_all("div",{"class":"ipsSpoiler"}):
 			spoiler_contents=htt_conf.handle(spoiler.decode_contents())
-			spoiler_contents = ">!"+spoiler_contents
 			spoiler_contents = add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(spoiler_contents)
+			spoiler_contents = ">!"+spoiler_contents
 			
 			newtag = tag.new_tag("div")
-			newtag.string = spoiler_contents
+			newtag.string = StringLiteralTransform(spoiler_contents)
 			spoiler.wrap(newtag)
 			spoiler.decompose()
 
 	@staticmethod
 	def Process_Tables(tag):
 		for table in tag.find_all('table'):
-			for ps in table.findChildren('p'):
-				for obj in ps.find_all(recursive=True):
+			for tds in table.findChildren('td'):
+				for obj in tds.find_all(recursive=True):
 					obj.unwrap()
-				ps.unwrap()
-			for tr in table.findChildren('tr'):
-				td=tr.find('td')
-				if not td.text:
-					td.string="-"
-				elif not td.text.strip():
-					td.string="-"
+				if not tds.text.strip():
+					tds.string="-"
 
 def process_soup_to_pull_post_contents(soup):
 	div_comment=soup.find('div',{"data-role":"commentContent"})
@@ -245,6 +246,7 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 	post_contents=htt_conf.handle(post_contents_HTML.decode_contents())
 	post_contents=post_contents.replace("![",'[')  #Because Reddit's implmentation of markdown does not support inline links like this: ![]()
 	post_contents=html.unescape(post_contents)
+
 
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
 	if not SubmissionValidTitle:
