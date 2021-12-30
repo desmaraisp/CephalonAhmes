@@ -3,12 +3,6 @@ from bs4 import BeautifulSoup
 import html
 
 
-def test_add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row():
-	Initial_String = "\n I am a first paragraph. \n \n I am a second paragraph that needs a spoiler tag. \n I am a third paragraph that does not need a tag, before or after. \n\n"
-	Processed_string = wpts.add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(Initial_String)
-	assert Processed_string == "I am a first paragraph.\n\n>!I am a second paragraph that needs a spoiler tag. \n I am a third paragraph that does not need a tag, before or after."
-	
-
 def test_strip_BlockQuote_Header():
 	InitialString = """<blockquote><div>HeaderContent</div><div>StringContent</div></blockquote>"""
 	
@@ -102,10 +96,32 @@ def test_convert_iframes_to_link():
 	
 	assert soup.decode_contents()=="""<a>iframesrc</a>"""
 
+def test_add_spoiler_tag_to_html_element():
+	InitialString = """
+		<span>
+			<div class="ipsSpoiler">test</div>
+		</span>
+	""".replace("\t","").replace("\n","")
+	
+	soup = BeautifulSoup(InitialString, 'html.parser')
+	
+	wpts.add_spoiler_tag_to_html_element(soup.span.div, soup)
+
+	
+	assert html.unescape(soup.decode_contents())=="""
+		<span>
+			<div>
+				>!
+				<div class="ipsSpoiler">test</div>
+			</div>
+		</span>
+	""".replace("\t","").replace("\n","")
+
+
 def test_Process_Spoiler():
 	InitialString = """
 		<span>
-			<div class="ipsSpoiler"> String1<strong>String2</strong><br> String3</div>
+			<div class="ipsSpoiler"> String1<strong>String2</strong><br/> String3</div>
 		</span>
 	""".replace("\t","").replace("\n","")
 	
@@ -113,7 +129,14 @@ def test_Process_Spoiler():
 	
 	wpts.HTML_Corrections.Process_Spoiler(soup)
 	
-	assert html.unescape(soup.decode_contents())=="""<span><div>>!String1 **String2**  \nString3</div></span>"""
+	assert html.unescape(soup.decode_contents())=="""
+		<span>
+			<div>
+				>!
+				<div class="ipsSpoiler"> String1<strong>String2</strong> String3</div>
+			</div>
+		</span>
+	""".replace("\t","").replace("\n","")
 
 def test_Process_Spoiler2():
 	InitialString = """
@@ -131,7 +154,16 @@ def test_Process_Spoiler2():
 	
 	wpts.HTML_Corrections.Process_Spoiler(soup)
 	
-	assert html.unescape(soup.decode_contents())=="""<span><div>>!* Item1\n  * Item2</div></span>"""
+	assert html.unescape(soup.decode_contents())=="""
+		<span>
+			<div class="ipsSpoiler">
+				<ul>
+					<div>>!<li>Item1</li></div>
+					<div>>!<li>Item2</li></div>
+				</ul>
+			</div>
+		</span>
+	""".replace("\t","").replace("\n","")
 
 def test_Process_Tables():
 	InitialString = """

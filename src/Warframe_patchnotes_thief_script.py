@@ -43,13 +43,6 @@ def start_chrome_browser():
 	chrome_options.add_argument('--disable-dev-shm-usage')
 	return webdriver.Chrome(ChromeDriverManager().install(),options=chrome_options)
 
-def add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(string):
-	def add_character(match):
-		return "\n\n>!"
-	
-	pattern = r"\s*[\r\n]\s*[\r\n]\s*" #Two line breaks (either \n or \r) with any number of whitespaces around and between
-	return re.sub(pattern, add_character, string.strip())
-
 def start_reddit_session():
 	bot_login=praw.Reddit(
 		client_id = os.environ["PRAW_CLIENT_ID"],
@@ -70,6 +63,18 @@ def start_cloudcube_session():
 	)
 	s3 = session_cloudcube.resource('s3')
 	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json")
+
+def add_spoiler_tag_to_html_element(element, soup):
+	tags_to_add_spoiler_tag_to= ["p", "li", "div", "span"]
+	
+	has_Text_Child = any([(str(type(child))=="<class 'bs4.element.NavigableString'>") for child in element.children])
+	
+	if (element.name in tags_to_add_spoiler_tag_to) and (has_Text_Child):
+		newtag = soup.new_tag("div")
+		newtag.string = ">!"
+		element.wrap(newtag)
+
+
 
 class HTML_Corrections:
 	@staticmethod
@@ -122,8 +127,8 @@ class HTML_Corrections:
 	
 	@staticmethod
 	def propagate_elements_to_children(tag, soup):
-		HTML_Corrections.eliminate_and_propagate_tag(tag, 'strong', soup)
 		HTML_Corrections.eliminate_and_propagate_tag(tag, 'em', soup)
+		HTML_Corrections.eliminate_and_propagate_tag(tag, 'strong', soup)
 			
 	@staticmethod
 	def convert_iframes_to_link(tag, soup):
@@ -135,21 +140,13 @@ class HTML_Corrections:
 			
 	@staticmethod
 	def Process_Spoiler(soup):
-		def StringLiteralTransform(string):
-			
-			pattern = r"[\r\n]"
-			return re.sub(pattern, "\\n", string.strip())
-
-		
 		for spoiler in soup.find_all("div",{"class":"ipsSpoiler"}):
-			spoiler_contents=htt_conf.handle(spoiler.decode_contents())
-			spoiler_contents = add_multiline_spoiler_tag_if_multiple_line_returns_in_a_row(spoiler_contents)
-			spoiler_contents = ">!"+spoiler_contents
+			for br in spoiler.find_all("br"):
+				br.decompose()
 			
-			newtag = soup.new_tag("div")
-			newtag.string = StringLiteralTransform(spoiler_contents)
-			spoiler.wrap(newtag)
-			spoiler.decompose()
+			add_spoiler_tag_to_html_element(spoiler, soup)
+			for element in spoiler.find_all():
+				add_spoiler_tag_to_html_element(element, soup)
 
 	@staticmethod
 	def Process_Tables(tag):
