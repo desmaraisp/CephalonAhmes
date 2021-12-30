@@ -1,4 +1,5 @@
 import src.Warframe_patchnotes_thief_script as wpts
+import json
 
 def test_Check_Title_Validity():
 	title = "PSA: TestTitle"
@@ -45,3 +46,86 @@ def test_parse_forum_page_to_pull_latest_posts():
 	ResultHyperlink = wpts.parse_forum_page_to_pull_latest_posts(contents)
 	assert ResultHyperlink["href"]=="https://forums.warframe.com/topic/1293591-the-new-war-hotfix-3105/"
 	assert ResultHyperlink["title"].strip() == "The New War: Hotfix 31.0.5"
+	
+def test_commit_post_to_PostHistory():
+	PostHistory_JSON = json.loads("""
+	{
+	    "https://forums.warframe.com/forum/170-announcements-events/": [
+	        {
+	            "PageName": "Test1",
+	            "URL": "www.google.com"
+	        }
+	    ]
+	}
+	""")
+	
+	Expected = json.loads("""
+	{
+	    "https://forums.warframe.com/forum/170-announcements-events/": [
+	        {
+	            "PageName": "Test2",
+	            "URL": "https://www.test.com"
+	        },
+	        {
+	            "PageName": "Test1",
+	            "URL": "www.google.com"
+	        }
+	    ]
+	}
+	""")
+
+	
+	
+	ForumPost = {"URL":"https://www.test.com", "PageName":"Test2", "ForumPage":"https://forums.warframe.com/forum/170-announcements-events/"}
+	
+	wpts.commit_post_to_PostHistory(PostHistory_JSON, ForumPost)
+	
+	assert PostHistory_JSON == Expected
+	
+	
+def test_commit_post_to_PostHistory2():
+	PostHistory_JSON = json.loads("""
+	{
+	    "https://forums.warframe.com/forum/170-announcements-events/": [
+	        {
+	            "PageName": "Test1",
+	            "URL": "www.google.com"
+	        },
+	        {
+	            "PageName": "Test2",
+	            "URL": "www.google.com"
+	        },
+	        {
+	            "PageName": "Test3",
+	            "URL": "www.google.com"
+	        }
+	    ]
+	}
+	""")
+	
+	Expected = json.loads("""
+	{
+	    "https://forums.warframe.com/forum/170-announcements-events/": [
+	        {
+	            "PageName": "Test4",
+	            "URL": "https://www.test.com"
+	        },
+	        {
+	            "PageName": "Test1",
+	            "URL": "www.google.com"
+	        },
+	        {
+	            "PageName": "Test2",
+	            "URL": "www.google.com"
+	        }
+	    ]
+	}
+	""")
+
+	
+	
+	ForumPost = {"URL":"https://www.test.com", "PageName":"Test4", "ForumPage":"https://forums.warframe.com/forum/170-announcements-events/"}
+	
+	wpts.commit_post_to_PostHistory(PostHistory_JSON, ForumPost)
+	
+	assert PostHistory_JSON == Expected

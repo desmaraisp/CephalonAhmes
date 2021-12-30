@@ -19,9 +19,7 @@ DEBUG_subreddit = True #False on release
 sleeptime=60
 
 
-
-sort_menu_xpath='//a[@data-role="sortButton"]'
-post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
+CloudCubePath = os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json"
 warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
 target_SUB_Dict_Live={False:"scrappertest",True:"warframe"} #True for primary subreddit, False for backup option
 target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
@@ -62,7 +60,7 @@ def start_cloudcube_session():
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json")
+	return s3.Object('cloud-cube',CloudCubePath)
 
 def add_spoiler_tag_to_html_element(element, soup):
 	tags_to_add_spoiler_tag_to= ["p", "li", "div", "span"]
@@ -257,6 +255,9 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 
 def browser_get_updated_forum_page_source(forum_url, browser):
 	success=False
+	sort_menu_xpath='//a[@data-role="sortButton"]'
+	post_date_sort_xpath='//li[@data-ipsmenuvalue="start_date"]'
+	
 	while not success:
 		try:
 			browser.get(forum_url)
@@ -316,33 +317,40 @@ def sleep_func(sleeptime):
 def fetch_cloudcube_contents(cloud_cube_object):
 	return json.loads(cloud_cube_object.get()['Body'].read().decode('utf-8'))
 
-def main_loop(SubredditDict):
+def commit_post_to_PostHistory(PostHistory_json, ForumPost):
+	if len(PostHistory_json[ForumPost["ForumPage"]])>=3:
+		PostHistory_json[ForumPost["ForumPage"]].pop()
+	
+	PostHistoryPayload_To_Add = ForumPost.copy()
+	PostHistoryPayload_To_Add.pop("ForumPage")
+	PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
+
+
+def main_loop(SubredditDict, MaxIterations = -1):
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
 	PostHistory_json=fetch_cloudcube_contents(cloud_cube_object)
-	while True:
+	CurrentIteration = 0
+	
+	while CurrentIteration != MaxIterations:
 		newest_posts_on_warframe_forum=fetch_and_parse_forum_page_to_pull_latest_posts(warframe_forum_urls, browser)
 		for i, ForumPost in enumerate(newest_posts_on_warframe_forum):
+			
 			condition1 = ForumPost["URL"] not in dpu.values(PostHistory_json, '/*/*/URL')
 			condition2 = ForumPost["PageName"] not in dpu.values(PostHistory_json, '/*/*/PageName')
 			if condition1 and condition2:
-				print(ForumPost["PageName"])
 				
 				ResponseContent = GetNotes_From_Request(ForumPost["URL"])
 				SubmissionContents, SubmussionTitle = Get_and_Parse_Notes(ResponseContent, ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"])
 				
 				make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
 				
-				if len(PostHistory_json[ForumPost["ForumPage"]])>=3:
-					PostHistory_json[ForumPost["ForumPage"]].pop()
-				
-				PostHistoryPayload_To_Add = ForumPost.copy()
-				PostHistoryPayload_To_Add.pop("ForumPage")
-				PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
+				commit_post_to_PostHistory(PostHistory_json, ForumPost)
+				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=CloudCubePath)
 
-				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json")
 		sleep_func(sleeptime)
+		CurrentIteration += 1
 	
 	
 #%%
