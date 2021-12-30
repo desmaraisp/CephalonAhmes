@@ -11,25 +11,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
 import os, signal, sys, json, requests, re, time, html
 
-
-
-
-DEBUG_Source_Forum=True #False on release
-DEBUG_subreddit = True #False on release
-sleeptime=60
-
-
-CloudCubePath = os.environ["CLOUD_CUBE_BASE_LOC"]+"/PostHistory.json"
-warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
-target_SUB_Dict_Live={False:"scrappertest",True:"warframe"} #True for primary subreddit, False for backup option
-target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
-target_SUB_Dict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[DEBUG_subreddit]
-
-htt_conf=htt.HTML2Text()
-htt_conf.use_automatic_links=True
-htt_conf.body_width=0
-
-
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
 	if os.environ.get("GOOGLE_CHROME_BIN"):
@@ -60,7 +41,7 @@ def start_cloudcube_session():
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',CloudCubePath)
+	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+os.environ["CLOUDCUBE_POST_HISTORY_FILENAME"])
 
 def add_spoiler_tag_to_html_element(element, soup):
 	tags_to_add_spoiler_tag_to= ["p", "li", "div", "span"]
@@ -238,6 +219,10 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 	soup=BeautifulSoup(ResponseContent,'html.parser')
 	post_contents_HTML=process_soup_to_pull_post_contents(soup)
 
+	htt_conf=htt.HTML2Text()
+	htt_conf.use_automatic_links=True
+	htt_conf.body_width=0
+
 	post_contents=htt_conf.handle(post_contents_HTML.decode_contents())
 	post_contents=post_contents.replace("![",'[')  #Because Reddit's implmentation of markdown does not support inline links like this: ![]()
 	post_contents=html.unescape(post_contents)
@@ -326,7 +311,23 @@ def commit_post_to_PostHistory(PostHistory_json, ForumPost):
 	PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
 
 
-def main_loop(SubredditDict, MaxIterations = -1):
+def main_loop(MaxIterations = -1, Iteration_Interval_Time = 60, DEBUG_Source_Forum = True, DEBUG_subreddit = True):
+	"""
+	Parameters
+	----------
+	DEBUG_Source_Forum : TYPE, optional. Set to False for release
+		Whether the posted notes will be pulled from the intended forum pages (news, updates, etc) or from the general discussions page. Set to False for the news pages and True for General Discussions.
+	DEBUG_subreddit : TYPE, optional.
+		Whether the posted notes will be posted in the scrappertest subreddit by default. Set to False to post to r/warframe. The default is scrappertest.
+	"""
+	
+	target_SUB_Dict_Live={False:"scrappertest",True:"warframe"} #True for primary subreddit, False for backup option if the post was already made by DE
+	target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
+	
+	SubredditDict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[DEBUG_subreddit]
+	warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
+	
+	
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	signal.signal(signal.SIGTERM,signal_handler(browser))
@@ -347,9 +348,9 @@ def main_loop(SubredditDict, MaxIterations = -1):
 				make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
 				
 				commit_post_to_PostHistory(PostHistory_json, ForumPost)
-				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=CloudCubePath)
+				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=os.environ["CLOUD_CUBE_BASE_LOC"]+os.environ["CLOUDCUBE_POST_HISTORY_FILENAME"])
 
-		sleep_func(sleeptime)
+		sleep_func(Iteration_Interval_Time)
 		CurrentIteration += 1
 	
 	
@@ -357,5 +358,5 @@ def main_loop(SubredditDict, MaxIterations = -1):
 
 
 if __name__=="__main__":
-	main_loop(target_SUB_Dict)
+	main_loop()
 
