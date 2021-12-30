@@ -9,7 +9,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
-import os, signal, sys, json, requests, re, time, html
+import os, signal, sys, json, requests, re, time, html, argparse
+
+
+def Parse_CLI_Arguments():
+	parser=argparse.ArgumentParser()
+	parser.add_argument('--MaxIterations', type = int, default = -1)
+	parser.add_argument('--Iteration_Interval_Time', type = int, default = 60)
+	parser.add_argument('--Get_Posts_From_General_Discussions_Page', type = bool, default = True)
+	parser.add_argument('--Post_To_scrappertest_subreddit', type = bool, default = True)
+	
+	return parser.parse_args()
+
 
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
@@ -311,21 +322,21 @@ def commit_post_to_PostHistory(PostHistory_json, ForumPost):
 	PostHistory_json[ForumPost["ForumPage"]].insert(0, PostHistoryPayload_To_Add)
 
 
-def main_loop(MaxIterations = -1, Iteration_Interval_Time = 60, DEBUG_Source_Forum = True, DEBUG_subreddit = True):
+def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Discussions_Page, Post_To_scrappertest_subreddit):
 	"""
 	Parameters
 	----------
-	DEBUG_Source_Forum : TYPE, optional. Set to False for release
+	Get_Posts_From_General_Discussions_Page : bool
 		Whether the posted notes will be pulled from the intended forum pages (news, updates, etc) or from the general discussions page. Set to False for the news pages and True for General Discussions.
-	DEBUG_subreddit : TYPE, optional.
-		Whether the posted notes will be posted in the scrappertest subreddit by default. Set to False to post to r/warframe. The default is scrappertest.
+	Post_To_scrappertest_subreddit : bool
+		Whether the posted notes will be posted in the scrappertest subreddit by default. Set to False to post to r/warframe or True scrappertest.
 	"""
 	
 	target_SUB_Dict_Live={False:"scrappertest",True:"warframe"} #True for primary subreddit, False for backup option if the post was already made by DE
 	target_SUB_Dict_Debug={False:"scrappertest",True:"scrappertest"}
 	
-	SubredditDict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[DEBUG_subreddit]
-	warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[DEBUG_Source_Forum]
+	SubredditDict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[Post_To_scrappertest_subreddit]
+	warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[Get_Posts_From_General_Discussions_Page]
 	
 	
 	cloud_cube_object=start_cloudcube_session()
@@ -358,5 +369,7 @@ def main_loop(MaxIterations = -1, Iteration_Interval_Time = 60, DEBUG_Source_For
 
 
 if __name__=="__main__":
-	main_loop()
+	args = Parse_CLI_Arguments()
+	
+	main_loop(args.MaxIterations, args.Iteration_Interval_Time, args.Get_Posts_From_General_Discussions_Page, args.Post_To_scrappertest_subreddit)
 
