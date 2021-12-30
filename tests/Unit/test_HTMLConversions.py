@@ -89,12 +89,12 @@ def test_eliminate_and_propagate_tag():
 
 
 def test_convert_iframes_to_link():
-	InitialString = """<iframe src="iframesrc"></iframe>"""
+	InitialString = """<iframe src="iframesrc" data-embed-src="iframedatasrc"></iframe>"""
 	soup = BeautifulSoup(InitialString, 'html.parser')
 	
 	wpts.HTML_Corrections.convert_iframes_to_link(soup, soup)
 	
-	assert soup.decode_contents()=="""<a>iframesrc</a>"""
+	assert soup.decode_contents()=="""<a>iframedatasrc</a>"""
 
 def test_add_spoiler_tag_to_html_element():
 	InitialString = """

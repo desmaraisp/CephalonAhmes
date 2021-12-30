@@ -24,3 +24,5 @@ def test_Pull_Parse_and_Post_Notes():
 		SubmissionContents, SubmussionTitle = wpts.Get_and_Parse_Notes(ResponseContent, item["URL"], item["Name"], item["ForumPage"])
 		
 		wpts.make_submission({False:"scrappertest",True:"scrappertest"}, SubmissionContents, SubmussionTitle)
+		
+#test_Pull_Parse_and_Post_Notes()

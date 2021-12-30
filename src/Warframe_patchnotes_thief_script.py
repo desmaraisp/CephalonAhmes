@@ -124,7 +124,7 @@ class HTML_Corrections:
 	def convert_iframes_to_link(tag, soup):
 		for iframe_element in tag.find_all("iframe"):
 			newtag = soup.new_tag("a")
-			newtag.string = iframe_element["src"]
+			newtag.string = iframe_element["data-embed-src"]
 			iframe_element.wrap(newtag)
 			iframe_element.decompose()
 			
@@ -206,7 +206,7 @@ def make_submission(SubredditDict, content, title):
 	bot_login.subreddit(DestinationSubreddit).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
 		
 	for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-		bot_login.redditor(os.environ["PRAW_USERNAME"]).message(title, submission.url)
+		bot_login.redditor("desmaraisp").message(title, submission.url)
 		
 	while content:
 		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
