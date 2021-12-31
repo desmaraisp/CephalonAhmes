@@ -1,5 +1,5 @@
 import src.Warframe_patchnotes_thief_script as wpts
-import json
+import json, sys
 
 def test_Check_Title_Validity():
 	title = "PSA: TestTitle"
@@ -129,3 +129,12 @@ def test_commit_post_to_PostHistory2():
 	wpts.commit_post_to_PostHistory(PostHistory_JSON, ForumPost)
 	
 	assert PostHistory_JSON == Expected
+	
+	
+def test_Parse_CLI_Arguments():
+	sys.argv[1:] = ["--MaxIterations=5", "--Iteration_Interval_Time=55", "--Post_To_scrappertest_subreddit"]
+	
+	Result = wpts.Parse_CLI_Arguments()
+	
+	assert Result == (5,55,False,True)
+	

@@ -16,10 +16,11 @@ def Parse_CLI_Arguments():
 	parser=argparse.ArgumentParser()
 	parser.add_argument('--MaxIterations', type = int, default = -1)
 	parser.add_argument('--Iteration_Interval_Time', type = int, default = 60)
-	parser.add_argument('--Get_Posts_From_General_Discussions_Page', type = bool, default = True)
-	parser.add_argument('--Post_To_scrappertest_subreddit', type = bool, default = True)
+	parser.add_argument('--Get_Posts_From_General_Discussions_Page', default = False, action='store_true')
+	parser.add_argument('--Post_To_scrappertest_subreddit', default = False, action='store_true')
 	
-	return parser.parse_args()
+	args = parser.parse_args()
+	return args.MaxIterations, args.Iteration_Interval_Time, args.Get_Posts_From_General_Discussions_Page, args.Post_To_scrappertest_subreddit
 
 
 def start_chrome_browser():
@@ -54,16 +55,6 @@ def start_cloudcube_session():
 	s3 = session_cloudcube.resource('s3')
 	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+os.environ["CLOUDCUBE_POST_HISTORY_FILENAME"])
 
-def add_spoiler_tag_to_html_element(element, soup):
-	tags_to_add_spoiler_tag_to= ["p", "li", "div", "span"]
-	
-	has_Text_Child = any([(str(type(child))=="<class 'bs4.element.NavigableString'>") for child in element.children])
-	
-	if (element.name in tags_to_add_spoiler_tag_to) and (has_Text_Child):
-		newtag = soup.new_tag("div")
-		newtag.string = ">!"
-		element.wrap(newtag)
-
 
 
 class HTML_Corrections:
@@ -96,7 +87,18 @@ class HTML_Corrections:
 			video_source=source_element["src"]
 			source_element.parent.find('a')['href']=video_source
 				
-			
+	
+	@staticmethod
+	def strip_tabs_and_spaces_but_keep_newlines(string):
+		def my_replace(match):
+			return match.group().replace("\t","").replace(" ","")
+		
+		pattern = r'^\s*(?=\S)|(?<=\S)\s*$' #all trailing or leading whitespaces
+		
+		newstring = re.sub(pattern, my_replace,string)
+		
+		return newstring
+		
 	@staticmethod
 	def recursive_function(element, tag_name, soup):
 		for child in element.children:
@@ -104,15 +106,16 @@ class HTML_Corrections:
 			
 			if not is_leaf_of_tree:
 				HTML_Corrections.recursive_function(child, tag_name, soup)
-			else:
-				newtag= soup.new_tag(tag_name)
+			elif child.string.strip():
+				newtag = soup.new_tag(tag_name)
 				child.wrap(newtag)
-		if element.name==tag_name:
-			element.name="div"
+				newtag.string = HTML_Corrections.strip_tabs_and_spaces_but_keep_newlines(newtag.string) #Removes spaces in the text to reduce incidence of spaces making markdown formatting not work
+		if element.name == tag_name:
+			element.name="span"
 	
 	@staticmethod
 	def eliminate_and_propagate_tag(tag_object, tag_name, soup):
-		for element in tag_object.find_all(tag_name, recursive=True):
+		for element in tag_object.find_all(tag_name):
 			HTML_Corrections.recursive_function(element, tag_name, soup)
 	
 	@staticmethod
@@ -124,19 +127,50 @@ class HTML_Corrections:
 	def convert_iframes_to_link(tag, soup):
 		for iframe_element in tag.find_all("iframe"):
 			newtag = soup.new_tag("a")
-			newtag.string = iframe_element["data-embed-src"]
+			
+			if iframe_element.has_attr("data-embed-src"):
+				newtag.string = iframe_element["data-embed-src"]
+			elif iframe_element.has_attr("src"):
+				newtag.string = iframe_element["src"]
+			else:continue
 			iframe_element.wrap(newtag)
 			iframe_element.decompose()
-			
+	
+	@staticmethod
+	def add_spoiler_tag_to_html_element(element, soup):
+		
+		element_has_string_attribute = False
+		for child in element.children:
+			if not (str(type(child))=="<class 'bs4.element.NavigableString'>"):
+				continue
+			elif str(child).strip(' '):
+				element_has_string_attribute = True
+		
+		if (element_has_string_attribute) and not element.findParent("li"):
+			if element.name in ["p","span","div"]:
+				element.insert(0, ">!")
+	
 	@staticmethod
 	def Process_Spoiler(soup):
 		for spoiler in soup.find_all("div",{"class":"ipsSpoiler"}):
 			for br in spoiler.find_all("br"):
 				br.decompose()
 			
-			add_spoiler_tag_to_html_element(spoiler, soup)
+			HTML_Corrections.add_spoiler_tag_to_html_element(spoiler, soup)
+			
+			
 			for element in spoiler.find_all():
-				add_spoiler_tag_to_html_element(element, soup)
+				HTML_Corrections.add_spoiler_tag_to_html_element(element, soup)
+				
+			for element in spoiler.find_all("li"):
+				newtag = soup.new_tag("span")
+				newtag.string = ">!"
+				element.wrap(newtag)
+				
+			for element in spoiler.findParents("li"):
+				newtag = soup.new_tag("span")
+				newtag.string = ">!"
+				element.wrap(newtag)
 
 	@staticmethod
 	def Process_Tables(tag):
@@ -227,6 +261,8 @@ def GetNotes_From_Request(url:str):
 	return response.text
 
 def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSourceURL):
+	ResponseContent = ResponseContent.replace(u"\xa0", "") #Zero-width spaces are evil
+	
 	soup=BeautifulSoup(ResponseContent,'html.parser')
 	post_contents_HTML=process_soup_to_pull_post_contents(soup)
 
@@ -371,5 +407,5 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 if __name__=="__main__":
 	args = Parse_CLI_Arguments()
 	
-	main_loop(args.MaxIterations, args.Iteration_Interval_Time, args.Get_Posts_From_General_Discussions_Page, args.Post_To_scrappertest_subreddit)
+	main_loop(*args)
 

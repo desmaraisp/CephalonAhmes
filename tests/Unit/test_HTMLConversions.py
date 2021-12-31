@@ -14,7 +14,32 @@ def test_strip_BlockQuote_Header():
 	
 	assert tag.decode_contents()== DesiredResult
 
+def test_strip_tabs_and_spaces_but_keep_newlines():
+	InitialString = """  
+			  
+	 
+	   test1 test2 
+	   
+			   
+	   test3  
+		    
+	   """
 	
+	DesiredResult = """
+
+
+test1 test2 
+	   
+			   
+	   test3
+
+"""
+	
+
+	Result = wpts.HTML_Corrections.strip_tabs_and_spaces_but_keep_newlines(InitialString)
+	
+	assert Result== DesiredResult
+
 	
 def test_strip_Spoiler_Header():
 	InitialString = """<div class="ipsSpoiler"><div class="ipsSpoiler_header">HeaderContents</div><div class="ipsSpoiler_contents">SpoilerContents</div></div>"""
@@ -57,12 +82,18 @@ def test_convert_mp4_to_link():
 	assert tag.decode_contents()=="""<div><a href="srclink"></a><source src="srclink" type="video/mp4"/></div>"""
 
 def test_recursive_function():
-	InitialString = """<strong>String1<a>String2</a>String3</strong>"""
+	InitialString = """<strong>  	 
+	String1<a>  	 
+		 String2</a>String3  	
+		  </strong>"""
 	soup = BeautifulSoup(InitialString, 'html.parser')
 	
 	wpts.HTML_Corrections.recursive_function(soup.strong, "strong", soup)
 	
-	assert soup.decode_contents()=="""<div><strong>String1</strong><a><strong>String2</strong></a><strong>String3</strong></div>"""
+	assert soup.decode_contents()=="""<span><strong>
+String1</strong><a><strong>
+String2</strong></a><strong>String3
+</strong></span>"""
 
 
 def test_eliminate_and_propagate_tag():
@@ -73,28 +104,28 @@ def test_eliminate_and_propagate_tag():
 	
 	assert soup.decode_contents()=="""
 		<div>
-			<div>
+			<span>
 				<strong>String1</strong>
 				<a><strong>String2</strong></a>
 				<strong>String3</strong>
-			</div>
+			</span>
 			<div>
-				<div>
+				<span>
 					<strong>String4</strong>
 					<a><strong>String5</strong></a>
-				</div>
+				</span>
 			</div>
 		</div>
 	""".replace("\t","").replace("\n","")
 
 
 def test_convert_iframes_to_link():
-	InitialString = """<iframe src="iframesrc" data-embed-src="iframedatasrc"></iframe>"""
+	InitialString = """<iframe src="iframesrc" data-embed-src="iframedatasrc"></iframe><iframe src="iframesrc"></iframe>"""
 	soup = BeautifulSoup(InitialString, 'html.parser')
 	
 	wpts.HTML_Corrections.convert_iframes_to_link(soup, soup)
 	
-	assert soup.decode_contents()=="""<a>iframedatasrc</a>"""
+	assert soup.decode_contents()=="""<a>iframedatasrc</a><a>iframesrc</a>"""
 
 def test_add_spoiler_tag_to_html_element():
 	InitialString = """
@@ -105,15 +136,12 @@ def test_add_spoiler_tag_to_html_element():
 	
 	soup = BeautifulSoup(InitialString, 'html.parser')
 	
-	wpts.add_spoiler_tag_to_html_element(soup.span.div, soup)
+	wpts.HTML_Corrections.add_spoiler_tag_to_html_element(soup.span.div, soup)
 
 	
 	assert html.unescape(soup.decode_contents())=="""
 		<span>
-			<div>
-				>!
-				<div class="ipsSpoiler">test</div>
-			</div>
+			<div class="ipsSpoiler">>!test</div>
 		</span>
 	""".replace("\t","").replace("\n","")
 
@@ -131,10 +159,7 @@ def test_Process_Spoiler():
 	
 	assert html.unescape(soup.decode_contents())=="""
 		<span>
-			<div>
-				>!
-				<div class="ipsSpoiler"> String1<strong>String2</strong> String3</div>
-			</div>
+			<div class="ipsSpoiler">>! String1<strong>String2</strong> String3</div>
 		</span>
 	""".replace("\t","").replace("\n","")
 
@@ -158,8 +183,8 @@ def test_Process_Spoiler2():
 		<span>
 			<div class="ipsSpoiler">
 				<ul>
-					<div>>!<li>Item1</li></div>
-					<div>>!<li>Item2</li></div>
+					<span>>!<li>Item1</li></span>
+					<span>>!<li>Item2</li></span>
 				</ul>
 			</div>
 		</span>
