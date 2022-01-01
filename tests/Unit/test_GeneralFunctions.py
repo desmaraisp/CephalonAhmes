@@ -142,9 +142,9 @@ def test_commit_post_to_PostHistory2():
 	
 	
 def test_Parse_CLI_Arguments():
-	sys.argv[1:] = ["--MaxIterations=5", "--Iteration_Interval_Time=55", "--Post_To_scrappertest_subreddit"]
+	sys.argv[1:] = ["--ConfigurationName=Default"]
 	
 	Result = wpts.Parse_CLI_Arguments()
 	
-	assert Result == (5,55,False,True)
+	assert Result == "Default"
 	

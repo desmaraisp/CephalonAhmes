@@ -7,3 +7,4 @@ requests==2.23.0
 selenium==3.141.0
 webdriver-manager==3.4.2
 dpath==2.0.5
+pyaml-env==1.1.3

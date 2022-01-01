@@ -9,17 +9,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
+import src.AhmesConfig as ahc
+
 import os, signal, sys, json, requests, re, time, html, argparse, atexit, logging, io
 
 def Parse_CLI_Arguments():
 	parser=argparse.ArgumentParser()
-	parser.add_argument('--MaxIterations', type = int, default = -1)
-	parser.add_argument('--Iteration_Interval_Time', type = int, default = 60)
-	parser.add_argument('--Get_Posts_From_General_Discussions_Page', default = False, action='store_true')
-	parser.add_argument('--Post_To_scrappertest_subreddit', default = False, action='store_true')
+	parser.add_argument('--ConfigurationName', type = str)
 	
 	args = parser.parse_args()
-	return args.MaxIterations, args.Iteration_Interval_Time, args.Get_Posts_From_General_Discussions_Page, args.Post_To_scrappertest_subreddit
+	return args.ConfigurationName
 
 
 def start_chrome_browser():
@@ -432,7 +431,8 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 
 
 if __name__=="__main__":
-	args = Parse_CLI_Arguments()
+	ConfigurationName = Parse_CLI_Arguments()
 	
-	main_loop(*args)
-
+	ahc.Set_Configuration(ConfigurationName)
+	
+	main_loop()
