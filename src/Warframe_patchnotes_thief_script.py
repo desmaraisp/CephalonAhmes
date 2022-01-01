@@ -15,7 +15,7 @@ import os, signal, sys, json, requests, re, time, html, argparse, atexit, loggin
 
 def Parse_CLI_Arguments():
 	parser=argparse.ArgumentParser()
-	parser.add_argument('--ConfigurationName', type = str)
+	parser.add_argument('--ConfigurationName', type = str, default="Default")
 	
 	args = parser.parse_args()
 	return args.ConfigurationName
@@ -23,8 +23,8 @@ def Parse_CLI_Arguments():
 
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
-	if os.environ.get("GOOGLE_CHROME_BIN"):
-		chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+	if ahc.env_config["GOOGLE_CHROME_BIN"]:
+		chrome_options.binary_location = ahc.env_config["GOOGLE_CHROME_BIN"]
 	chrome_options.add_argument('--no-sandbox')
 	chrome_options.add_argument("--disable-extensions")
 	chrome_options.add_argument("--disable-gpu")
@@ -34,11 +34,11 @@ def start_chrome_browser():
 
 def start_reddit_session():
 	bot_login=praw.Reddit(
-		client_id = os.environ["PRAW_CLIENT_ID"],
-		client_secret = os.environ["PRAW_CLIENT_SECRET"],
+		client_id = ahc.env_config["PRAW_CLIENT_ID"],
+		client_secret = ahc.env_config["PRAW_CLIENT_SECRET"],
 		user_agent = 'warframe patch notes retriever bot 0.1',
-		username = os.environ["PRAW_USERNAME"],
-		password = os.environ["PRAW_PASSWORD"],
+		username = ahc.env_config["PRAW_USERNAME"],
+		password = ahc.env_config["PRAW_PASSWORD"],
 		validate_on_submit=True,
 		check_for_async=False
 		)
@@ -47,11 +47,11 @@ def start_reddit_session():
 
 def get_cloudcube_object(filename):
 	session_cloudcube = boto3.Session(
-		aws_access_key_id=os.environ["CLOUDCUBE_ACCESS_KEY_ID"],
-		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
+		aws_access_key_id=ahc.env_config["CLOUDCUBE_ACCESS_KEY_ID"],
+		aws_secret_access_key=ahc.env_config["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+filename)
+	return s3.Object('cloud-cube',ahc.env_config["CLOUD_CUBE_BASE_LOC"]+filename)
 
 
 
@@ -237,12 +237,12 @@ def make_submission(SubredditDict, content, title):
 	
 	bot_login.subreddit(DestinationSubreddit).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
 		
-	for submission in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
-		bot_login.redditor("desmaraisp").message(title, submission.url)
+	for submission in bot_login.redditor(ahc.env_config["PRAW_USERNAME"]).new(limit=1):
+		bot_login.redditor(ahc.env_config["BotOwnerUsername"]).message(title, submission.url)
 		
 	while content:
 		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
-		for comment in bot_login.redditor(os.environ["PRAW_USERNAME"]).new(limit=1):
+		for comment in bot_login.redditor(ahc.env_config["PRAW_USERNAME"]).new(limit=1):
 			comment.reply(Content_Before_Limit.strip()).disable_inbox_replies()
 		
 
@@ -278,7 +278,7 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 		print(f"Submission Ignored with title {SubmissionTitle}.")
 		return
 	
-	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(os.environ["PRAW_USERNAME"])
+	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(ahc.env_config["BotOwnerUsername"])
 	post_contents="[Source]({})\n\n{}{}".format(url,post_contents,automatic_message)
 
 	return post_contents, SubmissionTitle
@@ -342,11 +342,11 @@ def cull_logs(string, maxlen):
 class ExitHandlerClass:
 	def ExitFunction(self):
 		log_string = logging.getLogger().handlers[1].stream.getvalue()
-		log_string = fetch_cloudcube_contents("Log.txt") + log_string
+		log_string = fetch_cloudcube_contents(ahc.env_config["LogFileName"]) + log_string
 		log_string = cull_logs(log_string, 100)
 		
-		get_cloudcube_object("Log.txt").put(Body=log_string.encode('utf-8'))
-		get_cloudcube_object("PostHistory.json").put(Body=json.dumps(self.PostHistory_json).encode('utf-8'))
+		get_cloudcube_object(ahc.env_config["LogFileName"]).put(Body=log_string.encode('utf-8'))
+		get_cloudcube_object(ahc.env_config["PostHistoryFileName"]).put(Body=json.dumps(self.PostHistory_json).encode('utf-8'))
 		self.browser.quit()
 		
 	def excepthook(self, exc_type, exc_value, exc_traceback):
@@ -362,7 +362,7 @@ class ExitHandlerClass:
 		sys.excepthook = self.excepthook
 		atexit.register(self.ExitFunction)
 		
-		logging.config("logging.ini")
+		logging.config(ahc.env_config["LoggingConfigFileName"])
 
 	def __call__(self,a,b):
 		sys.exit()
@@ -404,7 +404,7 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 	
 	browser=start_chrome_browser()
 	
-	PostHistory_json=json.loads(fetch_cloudcube_contents("PostHistory.json"))
+	PostHistory_json=json.loads(fetch_cloudcube_contents(ahc.env_config["PostHistoryFileName"]))
 	Exit_Handler = ExitHandlerClass(browser, PostHistory_json)
 	CurrentIteration = 0
 	
@@ -435,4 +435,4 @@ if __name__=="__main__":
 	
 	ahc.Set_Configuration(ConfigurationName)
 	
-	main_loop()
+	main_loop(ahc.env_config["MaxIterations"], ahc.env_config["Iteration_Interval_Time"], ahc.env_config["Get_Posts_From_General_Discussions_Page"], ahc.env_config["Post_To_scrappertest_subreddit"])

@@ -147,4 +147,10 @@ def test_Parse_CLI_Arguments():
 	Result = wpts.Parse_CLI_Arguments()
 	
 	assert Result == "Default"
+
+def test_Parse_CLI_Arguments2():
+	sys.argv[1:] = []
 	
+	Result = wpts.Parse_CLI_Arguments()
+	
+	assert Result == "Default"
