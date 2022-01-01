@@ -9,8 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
-import os, signal, sys, json, requests, re, time, html, argparse
-
+import os, signal, sys, json, requests, re, time, html, argparse, atexit
 
 def Parse_CLI_Arguments():
 	parser=argparse.ArgumentParser()
@@ -333,12 +332,22 @@ def fetch_and_parse_forum_page_to_pull_latest_posts(forums_url_list, browser):
 	return newest_posts_on_warframe_forum
 
 
-class signal_handler:
+class ExitHandlerClass:
+	def ExitFunction(self):
+		self.browser.quit()
+		
+	def excepthook(exc_type, exc_value, exc_traceback):
+		print("exception Logged")
+
 	def __init__(self, browser):
 		self.browser=browser
+		signal.signal(signal.SIGTERM,self)
+		sys.excepthook = self.excepthook
+		atexit.register(self.ExitFunction)
+		
 	def __call__(self,a,b):
-		self.browser.quit()
 		sys.exit()
+	
 
 
 def sleep_func(sleeptime):
@@ -377,8 +386,9 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 	
 	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
-	signal.signal(signal.SIGTERM,signal_handler(browser))
+	
 	PostHistory_json=fetch_cloudcube_contents(cloud_cube_object)
+	Exit_Handler = ExitHandlerClass(browser)
 	CurrentIteration = 0
 	
 	while CurrentIteration != MaxIterations:
