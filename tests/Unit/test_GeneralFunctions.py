@@ -1,6 +1,16 @@
 import src.Warframe_patchnotes_thief_script as wpts
 import json, sys
 
+def test_cull_logs():
+	initial_string = "test1 \n test2 \n test3 \n test4"
+	
+	Expected = " test2 \n test3 \n test4"
+	
+	Result = wpts.cull_logs(initial_string, 3)
+	
+	assert Result == Expected
+	
+
 def test_Check_Title_Validity():
 	title = "PSA: TestTitle"
 	Forum = "Test"

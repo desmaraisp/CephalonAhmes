@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
-import os, signal, sys, json, requests, re, time, html, argparse, atexit
+import os, signal, sys, json, requests, re, time, html, argparse, atexit, logging, io
 
 def Parse_CLI_Arguments():
 	parser=argparse.ArgumentParser()
@@ -46,13 +46,13 @@ def start_reddit_session():
 	bot_login.validate_on_submit=True
 	return bot_login
 
-def start_cloudcube_session():
+def get_cloudcube_object(filename):
 	session_cloudcube = boto3.Session(
 		aws_access_key_id=os.environ["CLOUDCUBE_ACCESS_KEY_ID"],
 		aws_secret_access_key=os.environ["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+os.environ["CLOUDCUBE_POST_HISTORY_FILENAME"])
+	return s3.Object('cloud-cube',os.environ["CLOUD_CUBE_BASE_LOC"]+filename)
 
 
 
@@ -332,19 +332,39 @@ def fetch_and_parse_forum_page_to_pull_latest_posts(forums_url_list, browser):
 	return newest_posts_on_warframe_forum
 
 
+def cull_logs(string, maxlen):
+	lines = string.split("\n")
+	if len(lines)>maxlen:
+		number_of_lines_to_cut = len(lines)-maxlen
+		lines = lines[number_of_lines_to_cut:]
+		string = "\n".join(lines)
+	return string
+
 class ExitHandlerClass:
 	def ExitFunction(self):
+		log_string = logging.getLogger().handlers[1].stream.getvalue()
+		log_string = fetch_cloudcube_contents("Log.txt") + log_string
+		log_string = cull_logs(log_string, 100)
+		
+		get_cloudcube_object("Log.txt").put(Body=log_string.encode('utf-8'))
+		get_cloudcube_object("PostHistory.json").put(Body=json.dumps(self.PostHistory_json).encode('utf-8'))
 		self.browser.quit()
 		
-	def excepthook(exc_type, exc_value, exc_traceback):
-		print("exception Logged")
+	def excepthook(self, exc_type, exc_value, exc_traceback):
+		if issubclass(exc_type, KeyboardInterrupt):
+			sys.__excepthook__(exc_type, exc_value, exc_traceback)
+			return
+		logging.getLogger().critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
-	def __init__(self, browser):
+	def __init__(self, browser, PostHistory_json):
+		self.PostHistory_json = PostHistory_json
 		self.browser=browser
 		signal.signal(signal.SIGTERM,self)
 		sys.excepthook = self.excepthook
 		atexit.register(self.ExitFunction)
 		
+		logging.config("logging.ini")
+
 	def __call__(self,a,b):
 		sys.exit()
 	
@@ -355,8 +375,8 @@ def sleep_func(sleeptime):
 	for i in np.arange(0,sleeptime,duration):
 		time.sleep(duration)
 
-def fetch_cloudcube_contents(cloud_cube_object):
-	return json.loads(cloud_cube_object.get()['Body'].read().decode('utf-8'))
+def fetch_cloudcube_contents(filename):
+	return get_cloudcube_object(filename).get()['Body'].read().decode('utf-8')
 
 def commit_post_to_PostHistory(PostHistory_json, ForumPost):
 	if len(PostHistory_json[ForumPost["ForumPage"]])>=3:
@@ -383,12 +403,10 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 	SubredditDict = {True:target_SUB_Dict_Debug, False:target_SUB_Dict_Live}[Post_To_scrappertest_subreddit]
 	warframe_forum_urls={False:["https://forums.warframe.com/forum/3-pc-update-notes/","https://forums.warframe.com/forum/123-developer-workshop-update-notes/", "https://forums.warframe.com/forum/170-announcements-events/"],True:["https://forums.warframe.com/forum/36-general-discussion/"]}[Get_Posts_From_General_Discussions_Page]
 	
-	
-	cloud_cube_object=start_cloudcube_session()
 	browser=start_chrome_browser()
 	
-	PostHistory_json=fetch_cloudcube_contents(cloud_cube_object)
-	Exit_Handler = ExitHandlerClass(browser)
+	PostHistory_json=json.loads(fetch_cloudcube_contents("PostHistory.json"))
+	Exit_Handler = ExitHandlerClass(browser, PostHistory_json)
 	CurrentIteration = 0
 	
 	while CurrentIteration != MaxIterations:
@@ -405,7 +423,6 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 				make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
 				
 				commit_post_to_PostHistory(PostHistory_json, ForumPost)
-				cloud_cube_object.put(Bucket='cloud-cube',Body=json.dumps(PostHistory_json).encode('utf-8'),Key=os.environ["CLOUD_CUBE_BASE_LOC"]+os.environ["CLOUDCUBE_POST_HISTORY_FILENAME"])
 
 		sleep_func(Iteration_Interval_Time)
 		CurrentIteration += 1
