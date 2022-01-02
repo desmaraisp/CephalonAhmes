@@ -140,17 +140,3 @@ def test_commit_post_to_PostHistory2():
 	
 	assert PostHistory_JSON == Expected
 	
-	
-def test_Parse_CLI_Arguments():
-	sys.argv[1:] = ["--ConfigurationName=Default"]
-	
-	Result = wpts.Parse_CLI_Arguments()
-	
-	assert Result == "Default"
-
-def test_Parse_CLI_Arguments2():
-	sys.argv[1:] = []
-	
-	Result = wpts.Parse_CLI_Arguments()
-	
-	assert Result == "Default"

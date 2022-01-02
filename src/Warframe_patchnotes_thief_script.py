@@ -13,14 +13,6 @@ import src.AhmesConfig as ahc
 
 import os, signal, sys, json, requests, re, time, html, argparse, atexit, logging, logging.config, io
 
-def Parse_CLI_Arguments():
-	parser=argparse.ArgumentParser()
-	parser.add_argument('--ConfigurationName', type = str, default="Default")
-	
-	args = parser.parse_args()
-	return args.ConfigurationName
-
-
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
 	if ahc.env_config["GOOGLE_CHROME_BIN"]!='null':
@@ -430,8 +422,4 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 
 
 if __name__=="__main__":
-	ConfigurationName = Parse_CLI_Arguments()
-	
-	ahc.Set_Configuration(ConfigurationName)
-	
 	main_loop(ahc.env_config["MaxIterations"], ahc.env_config["Iteration_Interval_Time"], ahc.env_config["Get_Posts_From_General_Discussions_Page"], ahc.env_config["Post_To_scrappertest_subreddit"])

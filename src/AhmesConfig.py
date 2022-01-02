@@ -1,4 +1,5 @@
 import pyaml_env as pyle
+import os
 
 def Get_Config(Path):
 	return pyle.parse_config(Path)
@@ -18,4 +19,8 @@ def Set_Configuration(ConfigurationName):
 	global env_config
 	env_config = new_env_dict
 
-Set_Configuration("Default")
+
+if os.environ["ConfigurationName"]:
+	Set_Configuration(os.environ["ConfigurationName"])
+else 	Set_Configuration("Default")
+
