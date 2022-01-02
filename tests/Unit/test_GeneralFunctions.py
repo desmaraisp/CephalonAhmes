@@ -1,6 +1,16 @@
 import src.Warframe_patchnotes_thief_script as wpts
 import json, sys
 
+def test_cull_logs():
+	initial_string = "test1 \n test2 \n test3 \n test4"
+	
+	Expected = " test2 \n test3 \n test4"
+	
+	Result = wpts.cull_logs(initial_string, 3)
+	
+	assert Result == Expected
+	
+
 def test_Check_Title_Validity():
 	title = "PSA: TestTitle"
 	Forum = "Test"
@@ -132,9 +142,15 @@ def test_commit_post_to_PostHistory2():
 	
 	
 def test_Parse_CLI_Arguments():
-	sys.argv[1:] = ["--MaxIterations=5", "--Iteration_Interval_Time=55", "--Post_To_scrappertest_subreddit"]
+	sys.argv[1:] = ["--ConfigurationName=Default"]
 	
 	Result = wpts.Parse_CLI_Arguments()
 	
-	assert Result == (5,55,False,True)
+	assert Result == "Default"
+
+def test_Parse_CLI_Arguments2():
+	sys.argv[1:] = []
 	
+	Result = wpts.Parse_CLI_Arguments()
+	
+	assert Result == "Default"
