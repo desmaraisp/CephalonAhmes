@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
 import src.AhmesConfig as ahc
 
-import os, signal, sys, json, requests, re, time, html, argparse, atexit, logging, io
+import os, signal, sys, json, requests, re, time, html, argparse, atexit, logging, logging.config, io
 
 def Parse_CLI_Arguments():
 	parser=argparse.ArgumentParser()
@@ -23,7 +23,7 @@ def Parse_CLI_Arguments():
 
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
-	if ahc.env_config["GOOGLE_CHROME_BIN"]:
+	if ahc.env_config["GOOGLE_CHROME_BIN"]!='null':
 		chrome_options.binary_location = ahc.env_config["GOOGLE_CHROME_BIN"]
 	chrome_options.add_argument('--no-sandbox')
 	chrome_options.add_argument("--disable-extensions")
@@ -305,7 +305,7 @@ def browser_get_updated_forum_page_source(forum_url, browser):
 
 def parse_forum_page_to_pull_latest_posts(page_source):
 	soup=BeautifulSoup(page_source,"html.parser")
-	Thread_element_root=soup.find_all('div',{'class':'ipsDataItem_main'})
+	Thread_element_root=soup.find('ol',{'data-role':'tableRows'}).find_all('div',{'class':'ipsDataItem_main'})
 	
 	list_of_all_dates=[]
 	for i in Thread_element_root:
@@ -362,7 +362,7 @@ class ExitHandlerClass:
 		sys.excepthook = self.excepthook
 		atexit.register(self.ExitFunction)
 		
-		logging.config(ahc.env_config["LoggingConfigFileName"])
+		logging.config.fileConfig(ahc.env_config["LoggingConfigFileName"])
 
 	def __call__(self,a,b):
 		sys.exit()
@@ -415,12 +415,11 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 			condition1 = ForumPost["URL"] not in dpu.values(PostHistory_json, '/*/*/URL')
 			condition2 = ForumPost["PageName"] not in dpu.values(PostHistory_json, '/*/*/PageName')
 			if condition1 and condition2:
-				
 				ResponseContent = GetNotes_From_Request(ForumPost["URL"])
 				SubmissionContents, SubmussionTitle = Get_and_Parse_Notes(ResponseContent, ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"])
 				
 				make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
-				
+				logging.getLogger().warning(ForumPost["PageName"])
 				commit_post_to_PostHistory(PostHistory_json, ForumPost)
 
 		sleep_func(Iteration_Interval_Time)

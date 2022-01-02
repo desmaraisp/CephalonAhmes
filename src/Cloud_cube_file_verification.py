@@ -5,3 +5,6 @@ import json
 
 Result = json.loads(wpts.fetch_cloudcube_contents(ahc.env_config["PostHistoryFileName"]))
 print(json.dumps(Result, indent=4, sort_keys=True))
+
+Result = wpts.fetch_cloudcube_contents("Log.txt")
+print(Result)
