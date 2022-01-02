@@ -20,7 +20,4 @@ def Set_Configuration(ConfigurationName):
 	env_config = new_env_dict
 
 
-if os.environ["ConfigurationName"]:
-	Set_Configuration(os.environ["ConfigurationName"])
-else 	Set_Configuration("Default")
-
+Set_Configuration(config["ConfigurationName"])
