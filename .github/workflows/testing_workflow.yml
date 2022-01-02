@@ -26,5 +26,9 @@ jobs:
         PRAW_CLIENT_SECRET: ${{ secrets.PRAW_CLIENT_SECRET }}
         PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
         PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
+        ConfigurationName: ${{ secrets.ConfigurationName }}
+        CLOUDCUBE_SECRET_ACCESS_KEY: ${{ secrets.CLOUDCUBE_SECRET_ACCESS_KEY }}
+        CLOUDCUBE_ACCESS_KEY_ID: ${{ secrets.CLOUDCUBE_ACCESS_KEY_ID }}
+        CLOUD_CUBE_BASE_LOC: ${{ secrets.CLOUD_CUBE_BASE_LOC }}
       run: |
         python -m pytest
