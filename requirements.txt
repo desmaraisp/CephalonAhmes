@@ -1,6 +1,6 @@
 praw==7.5.0
 pytest==6.2.3
-beautifulsoup4==4.9.3 --install-option="--force-reinstall"
+beautifulsoup4==4.9.3
 numpy==1.18.1
 boto3==1.13.6
 requests==2.23.0
@@ -8,4 +8,4 @@ selenium==3.141.0
 webdriver-manager==3.4.2
 dpath==2.0.5
 pyaml-env==1.1.3
-git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b891b24a#egg=html2text --install-option="--force-reinstall"
+git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b891b24a#egg=html2text
