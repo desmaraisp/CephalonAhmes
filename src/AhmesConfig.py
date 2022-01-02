@@ -4,7 +4,7 @@ import os
 def Get_Config(Path):
 	return pyle.parse_config(Path)
 
-config = Get_Config('{}/../../Settings.ini'.format(__file__))
+config = Get_Config('Settings.ini')
 
 def Set_Configuration(ConfigurationName):
 	try:
