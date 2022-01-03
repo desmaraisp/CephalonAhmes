@@ -1,12 +1,17 @@
-from Warframe_patchnotes_thief_script import start_cloudcube_session,fetch_cloudcube
+import src.Warframe_patchnotes_thief_script as wpts
+import src.AhmesConfig as ahc
+import json
 
 
-cloud_cube_object=start_cloudcube_session()
-print(fetch_cloudcube(cloud_cube_object))
+Result = json.loads(wpts.fetch_cloudcube_contents(ahc.env_config["PostHistoryFileName"]))
+print(json.dumps(Result, indent=4, sort_keys=True))
 
+print("==========\n")
 
+Result = wpts.fetch_cloudcube_contents("Log.txt")
+print(Result)
 
-# last_url='34'
-# cloud_cube_object.put(Bucket='cloud-cube',Body=last_url.encode('utf-8'),Key=os.environ["cloud_cube_file_loc"])
+print("==========\n")
 
-
+Result = wpts.fetch_cloudcube_contents("Ahmes.log")
+print(Result)
