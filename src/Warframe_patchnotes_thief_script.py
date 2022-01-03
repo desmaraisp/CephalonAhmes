@@ -360,6 +360,7 @@ class ExitHandlerClass:
 		logging.config.fileConfig(ahc.env_config["LoggingConfigFileName"])
 
 	def __call__(self,a,b):
+		self.ExitFunction()
 		sys.exit()
 	
 
