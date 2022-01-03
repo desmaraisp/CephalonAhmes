@@ -245,6 +245,7 @@ def GetNotes_From_Request(url:str):
 			response=requests.get(url,timeout=20)
 			response.raise_for_status()
 		except:
+			logging.getLogger().warning("Request Failed, retrying...")
 			time.sleep(5)
 			continue
 		success = True
@@ -267,7 +268,7 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
 	if not SubmissionValidTitle:
-		print(f"Submission Ignored with title {SubmissionTitle}.")
+		logging.getLogger().warning("Submission Ignored with title {}.".format(SubmissionTitle))
 		return
 	
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(ahc.env_config["BotOwnerUsername"])
@@ -287,12 +288,14 @@ def browser_get_updated_forum_page_source(forum_url, browser):
 			WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH,post_date_sort_xpath))).click()
 			WebDriverWait(browser, 20).until_not(EC.visibility_of_element_located((By.XPATH,'//*[@id="elAjaxLoading"]')))
 		except:
+			logging.getLogger().warning("Selenium Error encountered, retrying...")
 			time.sleep(5)
 			continue
 		if browser.find_element_by_tag_name('time'):
 			return browser.page_source
 		else:
 			time.sleep(5)
+			logging.getLogger().warning("No time element found in selenium page, retrying...")
 			continue
 
 def parse_forum_page_to_pull_latest_posts(page_source):
