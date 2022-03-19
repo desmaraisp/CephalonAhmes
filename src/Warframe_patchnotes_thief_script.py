@@ -269,7 +269,7 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 	SubmissionTitle, SubmissionValidTitle=Check_Title_Validity(SubmissionTitle, ForumSourceURL)
 	if not SubmissionValidTitle:
 		logging.getLogger().warning("Submission Ignored with title {}.".format(SubmissionTitle))
-		return
+		return None, None
 	
 	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(ahc.env_config["BotOwnerUsername"])
 	post_contents="[Source]({})\n\n{}{}".format(url,post_contents,automatic_message)
@@ -412,9 +412,12 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 			condition2 = ForumPost["PageName"] not in dpu.values(PostHistory_json, '/*/*/PageName')
 			if condition1 and condition2:
 				ResponseContent = GetNotes_From_Request(ForumPost["URL"])
+
 				SubmissionContents, SubmussionTitle = Get_and_Parse_Notes(ResponseContent, ForumPost["URL"], ForumPost["PageName"], ForumPost["ForumPage"])
 				
-				make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
+				if(SubmissionContents):
+					make_submission(SubredditDict, SubmissionContents, SubmussionTitle)
+
 				logging.getLogger().warning(ForumPost["PageName"])
 				commit_post_to_PostHistory(PostHistory_json, ForumPost)
 
