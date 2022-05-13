@@ -9,14 +9,18 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import dpath.util as dpu
-import src.AhmesConfig as ahc
+import src.ConfigurationHandler as configuration_handler
+import src.SleepHandler as SleepHandler, src.HTMLCorrections as HTML_Corrections, src.ExitHandler as ExitHandler
 
-import os, signal, sys, json, requests, re, time, html, argparse, atexit, logging, logging.config, io
+
+import signal, sys, json, requests, re, time, html, atexit, logging, logging.config, io
+
+
 
 def start_chrome_browser():
 	chrome_options = webdriver.chrome.options.Options()
-	if ahc.env_config["GOOGLE_CHROME_BIN"]!='null':
-		chrome_options.binary_location = ahc.env_config["GOOGLE_CHROME_BIN"]
+	if configuration_handler.PROJECTCONFIGURATION["GOOGLE_CHROME_BIN"]:
+		chrome_options.binary_location = configuration_handler.PROJECTCONFIGURATION["GOOGLE_CHROME_BIN"]
 	chrome_options.add_argument('--no-sandbox')
 	chrome_options.add_argument("--disable-extensions")
 	chrome_options.add_argument("--disable-gpu")
@@ -26,11 +30,11 @@ def start_chrome_browser():
 
 def start_reddit_session():
 	bot_login=praw.Reddit(
-		client_id = ahc.env_config["PRAW_CLIENT_ID"],
-		client_secret = ahc.env_config["PRAW_CLIENT_SECRET"],
+		client_id = configuration_handler.PROJECTCONFIGURATION["PRAW_CLIENT_ID"],
+		client_secret = configuration_handler.PROJECTCONFIGURATION["PRAW_CLIENT_SECRET"],
 		user_agent = 'warframe patch notes retriever bot 0.1',
-		username = ahc.env_config["PRAW_USERNAME"],
-		password = ahc.env_config["PRAW_PASSWORD"],
+		username = configuration_handler.PROJECTCONFIGURATION["PRAW_USERNAME"],
+		password = configuration_handler.PROJECTCONFIGURATION["PRAW_PASSWORD"],
 		validate_on_submit=True,
 		check_for_async=False
 		)
@@ -39,137 +43,14 @@ def start_reddit_session():
 
 def get_cloudcube_object(filename):
 	session_cloudcube = boto3.Session(
-		aws_access_key_id=ahc.env_config["CLOUDCUBE_ACCESS_KEY_ID"],
-		aws_secret_access_key=ahc.env_config["CLOUDCUBE_SECRET_ACCESS_KEY"],
+		aws_access_key_id=configuration_handler.PROJECTCONFIGURATION["CLOUDCUBE_ACCESS_KEY_ID"],
+		aws_secret_access_key=configuration_handler.PROJECTCONFIGURATION["CLOUDCUBE_SECRET_ACCESS_KEY"],
 	)
 	s3 = session_cloudcube.resource('s3')
-	return s3.Object('cloud-cube',ahc.env_config["CLOUD_CUBE_BASE_LOC"]+filename)
+	return s3.Object('cloud-cube',configuration_handler.PROJECTCONFIGURATION["CLOUD_CUBE_BASE_LOC"]+filename)
 
 
 
-class HTML_Corrections:
-	@staticmethod
-	def strip_BlockQuote_Header(tag):
-		for block in tag.find_all("blockquote"):
-			block.find("div").decompose()
-
-	@staticmethod
-	def strip_Spoiler_Header(tag):
-		for spoilerheader in tag.find_all("div",{"class":"ipsSpoiler_header"}):
-			spoilerheader.decompose()
-
-	@staticmethod
-	def strip_Edited_Footer(tag):
-		for footer in tag.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}):
-			footer.decompose()
-
-	@staticmethod
-	def strip_image_links_to_avoid_double_links(tag):
-		for image in tag.find_all("img"):
-			for link in image.find_parents('a'):
-				image_source=link["href"]
-				link["href"]=None
-				image["src"]=image_source
-	
-	@staticmethod
-	def convert_mp4_to_link(tag):
-		for source_element in tag.find_all("source",{"type":"video/mp4"}):
-			video_source=source_element["src"]
-			source_element.parent.find('a')['href']=video_source
-				
-	
-	@staticmethod
-	def strip_tabs_and_spaces_but_keep_newlines(string):
-		def my_replace(match):
-			return match.group().replace("\t","").replace(" ","")
-		
-		pattern = r'^\s*(?=\S)|(?<=\S)\s*$' #all trailing or leading whitespaces
-		
-		newstring = re.sub(pattern, my_replace,string)
-		
-		return newstring
-		
-	@staticmethod
-	def recursive_function(element, tag_name, soup):
-		for child in element.children:
-			is_leaf_of_tree = (str(type(child))=="<class 'bs4.element.NavigableString'>")
-			
-			if not is_leaf_of_tree:
-				HTML_Corrections.recursive_function(child, tag_name, soup)
-			elif child.string.strip():
-				newtag = soup.new_tag(tag_name)
-				child.wrap(newtag)
-				newtag.string = HTML_Corrections.strip_tabs_and_spaces_but_keep_newlines(newtag.string) #Removes spaces in the text to reduce incidence of spaces making markdown formatting not work
-		if element.name == tag_name:
-			element.name="span"
-	
-	@staticmethod
-	def eliminate_and_propagate_tag(tag_object, tag_name, soup):
-		for element in tag_object.find_all(tag_name):
-			HTML_Corrections.recursive_function(element, tag_name, soup)
-	
-	@staticmethod
-	def propagate_elements_to_children(tag, soup):
-		HTML_Corrections.eliminate_and_propagate_tag(tag, 'em', soup)
-		HTML_Corrections.eliminate_and_propagate_tag(tag, 'strong', soup)
-			
-	@staticmethod
-	def convert_iframes_to_link(tag, soup):
-		for iframe_element in tag.find_all("iframe"):
-			newtag = soup.new_tag("a")
-			
-			if iframe_element.has_attr("data-embed-src"):
-				newtag.string = iframe_element["data-embed-src"]
-			elif iframe_element.has_attr("src"):
-				newtag.string = iframe_element["src"]
-			else:continue
-			iframe_element.wrap(newtag)
-			iframe_element.decompose()
-	
-	@staticmethod
-	def add_spoiler_tag_to_html_element(element, soup):
-		
-		element_has_string_attribute = False
-		for child in element.children:
-			if not (str(type(child))=="<class 'bs4.element.NavigableString'>"):
-				continue
-			elif str(child).strip(' '):
-				element_has_string_attribute = True
-		
-		if (element_has_string_attribute) and not element.findParent("li"):
-			if element.name in ["p","span","div"]:
-				element.insert(0, ">!")
-	
-	@staticmethod
-	def Process_Spoiler(soup):
-		for spoiler in soup.find_all("div",{"class":"ipsSpoiler"}):
-			for br in spoiler.find_all("br"):
-				br.decompose()
-			
-			HTML_Corrections.add_spoiler_tag_to_html_element(spoiler, soup)
-			
-			
-			for element in spoiler.find_all():
-				HTML_Corrections.add_spoiler_tag_to_html_element(element, soup)
-				
-			for element in spoiler.find_all("li"):
-				newtag = soup.new_tag("span")
-				newtag.string = ">!"
-				element.wrap(newtag)
-				
-			for element in spoiler.findParents("li"):
-				newtag = soup.new_tag("span")
-				newtag.string = ">!"
-				element.wrap(newtag)
-
-	@staticmethod
-	def Process_Tables(tag):
-		for table in tag.find_all('table'):
-			for tds in table.findChildren('td'):
-				for obj in tds.find_all(recursive=True):
-					obj.unwrap()
-				if not tds.text.strip():
-					tds.string="-"
 
 def process_soup_to_pull_post_contents(soup):
 	div_comment=soup.find('div',{"data-role":"commentContent"})
@@ -229,12 +110,12 @@ def make_submission(SubredditDict, content, title):
 	
 	bot_login.subreddit(DestinationSubreddit).submit(title,selftext=Content_Before_Limit.strip(),flair_id=news_flair_id,send_replies=False)		
 		
-	for submission in bot_login.redditor(ahc.env_config["PRAW_USERNAME"]).new(limit=1):
-		bot_login.redditor(ahc.env_config["BotOwnerUsername"]).message(title, submission.url)
+	for submission in bot_login.redditor(configuration_handler.PROJECTCONFIGURATION["PRAW_USERNAME"]).new(limit=1):
+		bot_login.redditor(configuration_handler.PROJECTCONFIGURATION["BotOwnerUsername"]).message(title, submission.url)
 		
 	while content:
 		Content_Before_Limit, content = split_content_for_character_limit(content, 10000, ['\n\n', '\n'])
-		for comment in bot_login.redditor(ahc.env_config["PRAW_USERNAME"]).new(limit=1):
+		for comment in bot_login.redditor(configuration_handler.PROJECTCONFIGURATION["PRAW_USERNAME"]).new(limit=1):
 			comment.reply(Content_Before_Limit.strip()).disable_inbox_replies()
 		
 
@@ -271,7 +152,7 @@ def Get_and_Parse_Notes(ResponseContent, url:str, SubmissionTitle:str, ForumSour
 		logging.getLogger().warning("Submission Ignored with title {}.".format(SubmissionTitle))
 		return None, None
 	
-	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(ahc.env_config["BotOwnerUsername"])
+	automatic_message="\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(configuration_handler.PROJECTCONFIGURATION["BotOwnerUsername"])
 	post_contents="[Source]({})\n\n{}{}".format(url,post_contents,automatic_message)
 
 	return post_contents, SubmissionTitle
@@ -334,42 +215,8 @@ def cull_logs(string, maxlen):
 		string = "\n".join(lines)
 	return string
 
-class ExitHandlerClass:
-	def ExitFunction(self):
-		log_string = logging.getLogger().handlers[1].stream.getvalue()
-		log_string = fetch_cloudcube_contents(ahc.env_config["LogFileName"]) + log_string
-		log_string = cull_logs(log_string, 100)
-		
-		get_cloudcube_object(ahc.env_config["LogFileName"]).put(Body=log_string.encode('utf-8'))
-		get_cloudcube_object(ahc.env_config["PostHistoryFileName"]).put(Body=json.dumps(self.PostHistory_json).encode('utf-8'))
-		self.browser.quit()
-		
-	def excepthook(self, exc_type, exc_value, exc_traceback):
-		if issubclass(exc_type, KeyboardInterrupt):
-			sys.__excepthook__(exc_type, exc_value, exc_traceback)
-			return
-		logging.getLogger().critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-	def __init__(self, browser, PostHistory_json):
-		self.PostHistory_json = PostHistory_json
-		self.browser=browser
-		signal.signal(signal.SIGTERM,self)
-		sys.excepthook = self.excepthook
-		atexit.register(self.ExitFunction)
-		
-		logging.config.fileConfig(ahc.env_config["LoggingConfigFileName"])
-
-	def __call__(self,a,b):
-		self.ExitFunction()
-		sys.exit()
 	
-
-
-def sleep_func(sleeptime):
-	duration=2
-	for i in np.arange(0,sleeptime,duration):
-		time.sleep(duration)
-
+    
 def fetch_cloudcube_contents(filename):
 	return get_cloudcube_object(filename).get()['Body'].read().decode('utf-8')
 
@@ -400,8 +247,8 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 	
 	browser=start_chrome_browser()
 	
-	PostHistory_json=json.loads(fetch_cloudcube_contents(ahc.env_config["PostHistoryFileName"]))
-	Exit_Handler = ExitHandlerClass(browser, PostHistory_json)
+	PostHistory_json=json.loads(fetch_cloudcube_contents(configuration_handler.PROJECTCONFIGURATION["PostHistoryFileName"]))
+	Exit_Handler = ExitHandler.ExitHandlerClass(browser, PostHistory_json, SleepHandler.SLEEPHANDLER)
 	CurrentIteration = 0
 	
 	while CurrentIteration != MaxIterations:
@@ -429,4 +276,4 @@ def main_loop(MaxIterations, Iteration_Interval_Time, Get_Posts_From_General_Dis
 
 
 if __name__=="__main__":
-	main_loop(ahc.env_config["MaxIterations"], ahc.env_config["Iteration_Interval_Time"], ahc.env_config["Get_Posts_From_General_Discussions_Page"], ahc.env_config["Post_To_scrappertest_subreddit"])
+	main_loop(configuration_handler.PROJECTCONFIGURATION["MaxIterations"], configuration_handler.PROJECTCONFIGURATION["Iteration_Interval_Time"], configuration_handler.PROJECTCONFIGURATION["Get_Posts_From_General_Discussions_Page"], configuration_handler.PROJECTCONFIGURATION["Post_To_scrappertest_subreddit"])
