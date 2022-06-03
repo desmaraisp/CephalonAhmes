@@ -1,4 +1,7 @@
-import src.main as wpts
+from src import (
+    PrawUtilities,
+    main as wpts
+    )
 import pytest
 
 @pytest.mark.integtest
@@ -14,17 +17,15 @@ def test_Get_and_Parse_Notes():
     assert Result[0] == Expected
 
 
-# =============================================================================
-# @pytest.mark.integtest
-# def test_Pull_Parse_and_Post_Notes():
-# 	with open("tests/Integration/URLs_to_post.json") as file:
-# 		URLs_List = json.loads(file.read())
-# 	
-# 	for item in URLs_List:
-# 		ResponseContent = wpts.GetNotes_From_Request(item["URL"])
-# 		SubmissionContents, SubmussionTitle = wpts.Get_and_Parse_Notes(ResponseContent, item["URL"], item["Name"], item["ForumPage"])
-# 		
-# 		wpts.make_submission({False:"scrappertest",True:"scrappertest"}, SubmissionContents, SubmussionTitle)
-# 
-# 
-# =============================================================================
+@pytest.mark.integtest
+def test_Pull_Parse_and_Post_Notes():
+    with open("tests/Integration/Source_For_Post_Notes.html", encoding='utf-8') as file:
+        response_contents = file.read()
+
+    submission_contents, submission_title = wpts.get_and_parse_notes_from_response_contents(
+            response_contents, "https://www.testurl.com", "submissiontitle" , "https://forumsource.com")
+
+    if(submission_contents):
+        PrawUtilities.make_submission_to_targeted_subreddit(
+                submission_contents, submission_title)
+
