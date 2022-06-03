@@ -42,13 +42,13 @@ def get_subreddit_flair_id(subreddit_name):
 
 def get_destination_subreddit_from_configuration(submission_title):
     if check_if_post_has_already_been_posted_to_subreddit(submission_title,
-                                                                                                       configuration_handler.PROJECTCONFIGURATION.PrimaryDestinationSubreddit):
+                configuration_handler.PROJECTCONFIGURATION.PrimaryDestinationSubreddit):
         return configuration_handler.PROJECTCONFIGURATION.SecondaryDestinationSubreddit
 
     return configuration_handler.PROJECTCONFIGURATION.PrimaryDestinationSubreddit
 
 
-def make_submission_to_targeted_subreddit(initial_content, submission_title):
+def make_submission_to_targeted_subreddit(submission_contents, submission_title):
     # Splitting and posting
     bot_login = start_reddit_session()
     DestinationSubreddit = get_destination_subreddit_from_configuration(submission_title)
@@ -56,18 +56,17 @@ def make_submission_to_targeted_subreddit(initial_content, submission_title):
     news_flair_id = get_subreddit_flair_id(DestinationSubreddit)
 
     content_before_limit, content_after_limit = SMS.split_string_on_last_separator_before_cutoff_length(
-            initial_content, 40000, ['\n\n', '\n'])
+            submission_contents, 40000, ['\n\n', '\n'])
 
-    bot_login.subreddit(DestinationSubreddit).submit(
+    submission : praw.reddit.Submission = bot_login.subreddit(DestinationSubreddit).submit(
             submission_title, selftext=content_before_limit.strip(), flair_id=news_flair_id, send_replies=False)
 
-    for submission in bot_login.redditor(configuration_handler.PROJECTCONFIGURATION.PRAW_USERNAME).new(limit=1):
-        bot_login.redditor(configuration_handler.PROJECTCONFIGURATION.BotOwnerUsername).message(
-                submission_title, submission.url)
+    bot_login.redditor(configuration_handler.PROJECTCONFIGURATION.BotOwnerUsername).message(
+                submission_title, submission.url
+            )
 
     while content_after_limit:
         content_before_limit, content_after_limit = SMS.split_string_on_last_separator_before_cutoff_length(
                 content_after_limit, 10000, ['\n\n', '\n'])
-        for comment in bot_login.redditor(configuration_handler.PROJECTCONFIGURATION.PRAW_USERNAME).new(limit=1):
-            comment.reply(content_before_limit.strip()).disable_inbox_replies()
+        submission = submission.reply(content_before_limit.strip()).disable_inbox_replies()
 
