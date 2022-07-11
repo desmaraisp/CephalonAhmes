@@ -1,9 +1,9 @@
 praw==7.5.0
-pytest==7.1.2
+pytest==6.2.3
 beautifulsoup4==4.9.3
 boto3==1.13.6
 requests==2.23.0
-selenium==4.3.0
+selenium==3.141.0
 webdriver-manager==3.4.2
 dpath==2.0.5
 dataclass-wizard==0.22.1
