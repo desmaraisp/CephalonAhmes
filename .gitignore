@@ -3,3 +3,7 @@ env/
 .pytest_cache/
 .vs/
 .vscode/
+.coverage
+coverage.xml
+pytest.xml
+pytest-coverage.txt

@@ -9,3 +9,4 @@ dpath==2.0.5
 dataclass-wizard==0.22.1
 git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b891b24a#egg=html2text
 InterruptibleSleepBinding==1.0.0
+pytest-cov==3.0.0

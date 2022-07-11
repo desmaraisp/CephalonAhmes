@@ -3,9 +3,8 @@ import os
 
 current_configuration_name = os.getenv('ConfigurationName', 'Default')
 
-try:
-    _klass = getattr(ProjectSettings, current_configuration_name)
-except AttributeError:
-    raise(Exception("No such environment"))
+if(current_configuration_name not in ProjectSettings.ConfigurationClasses):
+    raise(Exception(f"No such environment : {current_configuration_name}"))
 
+_klass = ProjectSettings.ConfigurationClasses[current_configuration_name]
 PROJECTCONFIGURATION: ProjectSettings.Default = _klass()
