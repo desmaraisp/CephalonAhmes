@@ -1,5 +1,5 @@
 praw==7.5.0
-pytest==6.2.3
+pytest==7.1.2
 beautifulsoup4==4.9.3
 boto3==1.13.6
 requests==2.23.0
