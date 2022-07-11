@@ -1,4 +1,5 @@
 import os
+import typing
 
 
 class Default():
@@ -39,3 +40,10 @@ class CatchUp(Live):
     PrimaryDestinationSubreddit = "scrappertest"
     MaxIterations = 1
     Iteration_Interval_Time = 0
+
+
+ConfigurationClasses:typing.Dict[str, Default] = {
+    "Default":Default,
+    "Live":Live,
+    "CatchUp":CatchUp
+}

@@ -5,12 +5,12 @@ from bs4 import (
 from typing import Union
 import re
 
-def decompose_all_blockquote_headers(tag: Union[bs4elem.Tag, bs4elem.NavigableString]):
+def decompose_all_blockquote_headers(tag: Union[bs4elem.Tag, bs4elem.NavigableString]) -> None:
     for block in tag.find_all("blockquote"):
         block.find("div").decompose()
 
 
-def decompose_all_spoiler_headers(tag: Union[bs4elem.Tag, bs4elem.NavigableString]):
+def decompose_all_spoiler_headers(tag: Union[bs4elem.Tag, bs4elem.NavigableString]) -> None:
     for spoilerheader in tag.find_all("div",{"class":"ipsSpoiler_header"}):
         spoilerheader.decompose()
 
@@ -35,7 +35,7 @@ def convert_mp4_to_link(tag: Union[bs4elem.Tag, bs4elem.NavigableString]):
 
 
 
-def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string):
+def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string) -> str:
     def my_replace(match):
         return match.group().replace("\t","").replace(" ","")
 

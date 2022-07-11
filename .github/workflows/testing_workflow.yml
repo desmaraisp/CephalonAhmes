@@ -11,10 +11,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - id: GetPythonVersion
+      shell: pwsh
+      run: | 
+        $content = Get-Content ./runtime.txt
+        $version_num = [regex]::match($content, "(?<=python-)\S*").Groups[0].value
+        echo "::set-output name=python_version_num::$version_num"
+
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4.0.0
       with:
-        python-version: '3.8.8'
+        python-version: ${{ steps.GetPythonVersion.outputs.python_version_num }}
     - name: Install dependencies
       run: |
         python -m pip install -r requirements.txt
@@ -28,5 +35,9 @@ jobs:
         CLOUDCUBE_SECRET_ACCESS_KEY: ${{ secrets.CLOUDCUBE_SECRET_ACCESS_KEY }}
         CLOUDCUBE_ACCESS_KEY_ID: ${{ secrets.CLOUDCUBE_ACCESS_KEY_ID }}
         CLOUD_CUBE_BASE_LOC: ${{ secrets.CLOUD_CUBE_BASE_LOC }}
-      run: |
-        python -m pytest
+      run: python -m pytest --cov=src --junitxml=coverage.xml tests/ | tee pytest-coverage.txt
+
+    - name: Pytest coverage comment
+      uses: MishaKav/pytest-coverage-comment@v1.1.29
+      with:
+        junitxml-path: ./coverage.xml
