@@ -1,5 +1,6 @@
 import requests, logging
 from selenium import webdriver
+import selenium.common.exceptions as sce
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -35,9 +36,10 @@ def browser_fetch_updated_forum_page_source(forum_url: str, browser: webdriver.C
             logging.getLogger().warning("Selenium Error encountered, retrying...")
             SleepHandler.SLEEPHANDLER.sleep(5000)
             continue
-        if browser.find_element_by_tag_name('time'):
+        try:
+            browser.find_element_by_tag_name('time')
             return browser.page_source
-        else:
+        except sce.NoSuchElementException:
             SleepHandler.SLEEPHANDLER.sleep(5000)
             logging.getLogger().warning("No time element found in selenium page, retrying...")
             continue
