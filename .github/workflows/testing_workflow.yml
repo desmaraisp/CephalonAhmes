@@ -10,7 +10,6 @@ on:
 
 jobs:
   test:
-    environment: Private
     runs-on: ubuntu-latest
 
     steps:
