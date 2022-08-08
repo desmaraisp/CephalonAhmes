@@ -29,7 +29,7 @@ A few notes for people who might want to do something similar, how to make it wo
 
 - Create a text file on your amazon s3 bucket and get the two access keys. Just like previously, set those as environment variables. The file location should be like this: "Bucket_name/file_name.txt", also an env variable
 
-- You need to have chrome installed. The chromedriver (for selenium) is included in the repository, but you might want to update it if needs be to have the same version as your chrome.
+- You need to have chrome installed. The chromedriver (for selenium) is included automatically with webdriver-manager.
 
 
 
