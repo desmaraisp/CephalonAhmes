@@ -1,6 +1,6 @@
 # CephalonAhmes
 
-[![codecov](https://codecov.io/gh/CephalonAhmes/CephalonAhmes/branch/master/graph/badge.svg?token=8BAQOWNCCO)](https://codecov.io/gh/CephalonAhmes/CephalonAhmes)
+[![codecov](https://codecov.io/gh/desmaraisp/CephalonAhmes/branch/master/graph/badge.svg?token=8BAQOWNCCO)](https://codecov.io/gh/desmaraisp/CephalonAhmes)
 
 Heroku-hosted bot used to scrape update notes from the warframe forums and post them to the warframe subreddit
 
