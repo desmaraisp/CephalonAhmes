@@ -36,9 +36,7 @@ jobs:
         CLOUDCUBE_SECRET_ACCESS_KEY: ${{ secrets.CLOUDCUBE_SECRET_ACCESS_KEY }}
         CLOUDCUBE_ACCESS_KEY_ID: ${{ secrets.CLOUDCUBE_ACCESS_KEY_ID }}
         CLOUD_CUBE_BASE_LOC: ${{ secrets.CLOUD_CUBE_BASE_LOC }}
-      run: python -m pytest --cov=src --junitxml=coverage.xml tests/ | tee pytest-coverage.txt
+      run: python -m pytest --cov src
 
-    - name: Pytest coverage comment
-      uses: MishaKav/pytest-coverage-comment@v1.1.29
-      with:
-        junitxml-path: ./coverage.xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
