@@ -12,7 +12,7 @@ def get_response_text_from_generic_url(url: str):
         try:
             response = requests.get(url, timeout=20)
             response.raise_for_status()
-        except:
+        except Exception:
             logging.getLogger().warning("Request Failed, retrying...")
             SleepHandler.SLEEPHANDLER.sleep(5000)
             continue
@@ -32,7 +32,7 @@ def browser_fetch_updated_forum_page_source(forum_url: str, browser: webdriver.C
                     (By.XPATH, post_date_sort_xpath))).click()
             WebDriverWait(browser, 20).until_not(
                     EC.visibility_of_element_located((By.XPATH, '//*[@id="elAjaxLoading"]')))
-        except:
+        except Exception:
             logging.getLogger().warning("Selenium Error encountered, retrying...")
             SleepHandler.SLEEPHANDLER.sleep(5000)
             continue
