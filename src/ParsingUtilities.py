@@ -17,7 +17,7 @@ def get_latest_submission_dataclass_in_forum_page(page_source :str) -> dtc.Indiv
     list_of_all_threads_in_forum_page = soup.find(
             'ol', {'data-role': 'tableRows'}).find_all('div', {'class': 'ipsDataItem_main'})
 
-    last_thread = max(list_of_all_threads_in_forum_page, key=lambda elem: get_date_from_thread(elem))
+    last_thread = max(list_of_all_threads_in_forum_page, key=get_date_from_thread)
 
     link_to_latest_post = last_thread.findChild(
             'a', recursive=True)

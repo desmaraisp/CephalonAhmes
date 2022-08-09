@@ -1,4 +1,4 @@
-import logging, sys, signal, atexit, time
+import logging, sys, signal, atexit
 from selenium import webdriver
 from src import (
         S3BucketFunctions as s3b,
@@ -9,7 +9,7 @@ from src import (
 class SigintIgnore:
     sigint_detected: bool = False
     
-    def __call__(self, a, b):
+    def __call__(self, _, __):
         self.sigint_detected = True
 
 class ExitHandlerClass:
@@ -42,7 +42,7 @@ class ExitHandlerClass:
         sys.excepthook = self.excepthook
         atexit.register(self.ExitFunction)
 
-    def __call__(self, a, b):
+    def __call__(self, _, __):
         sys.exit()
         
 
@@ -53,4 +53,4 @@ class ExitHandlerClass:
     def disable_lock(self):
         self.set_self_as_signal_handler()
         if(self._sigint_ignore.sigint_detected):
-            self.__call__()
+            self.__call__(None, None)

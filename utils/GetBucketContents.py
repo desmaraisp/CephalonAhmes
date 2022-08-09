@@ -8,7 +8,7 @@ Result = DataclassConversions.convert_post_history_json_to_submission_model(
 print(Result)
 
 print("==========\n\nPost History - Live")
-Result = Result = DataclassConversions.convert_post_history_json_to_submission_model(
+Result = DataclassConversions.convert_post_history_json_to_submission_model(
     json.loads(S3BucketFunctions.fetch_cloudcube_contents("SubmissionHistory.Live.json", "{}"))
 )
 print(Result)

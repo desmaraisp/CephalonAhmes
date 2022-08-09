@@ -155,7 +155,7 @@ def test_convert_dataclass_models_back_and_forth():
     assert(output_object == input_object)
     
     
-def test_convert_post_history_json_to_submission_model():
+def test_convert_post_history_json_to_submission_model_negative_test():
     input_object = {
             "forum_sources": [
                     {
