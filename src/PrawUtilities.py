@@ -69,6 +69,6 @@ def make_submission_to_targeted_subreddit(submission_contents, submission_title)
     while content_after_limit:
         content_before_limit, content_after_limit = SMS.split_string_on_last_separator_before_cutoff_length(
                 content_after_limit, 10000, ['\n\n', '\n'])
-        submission = submission.reply(content_before_limit.strip())
+        submission = submission.reply(body=content_before_limit.strip())
         submission.disable_inbox_replies()
 
