@@ -48,7 +48,7 @@ def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string) -> str:
 
 def eliminate_and_propagate_tag(root_tag: Union[bs4elem.Tag, bs4elem.NavigableString], tag_name :str, soup: BeautifulSoup):
     for tag_of_type in root_tag.find_all(tag_name):
-        for navigable_string in tag_of_type.find_all(text=True, recursive=True):
+        for navigable_string in tag_of_type.find_all(string=True, recursive=True):
             newtag = soup.new_tag(tag_name)
             navigable_string.wrap(newtag)
             newtag.string = strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(newtag.string) #Removes spaces in the text to reduce incidence of spaces making markdown formatting not work
