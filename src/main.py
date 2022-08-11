@@ -1,11 +1,6 @@
-import typing, logging.config, html
-import html2text as htt
-from bs4 import BeautifulSoup
-import dpath.util as dpu
-from selenium import webdriver
+import src.SleepHandler
 from src import (
         DataclassConversions,
-        SleepHandler,
         HTMLCorrections as HTML_Corrections,
         ExitHandler,
         S3BucketFunctions as s3b,
@@ -18,6 +13,11 @@ from src import (
         StringManipulations,
         PostHistory
 )
+import typing, logging.config, html, time
+import html2text as htt
+from bs4 import BeautifulSoup
+import dpath.util as dpu
+from selenium import webdriver
 
 
 
@@ -94,7 +94,7 @@ def main_loop(MaxIterations, Iteration_Interval_Time):
                 browser
                 )
 
-        for i, forum_source in enumerate(newest_posts_on_warframe_forum.forum_sources):
+        for forum_source in newest_posts_on_warframe_forum.forum_sources:
             latest_forum_post_for_current_forum_source = forum_source.submissions_list[0]
 
             condition1 = latest_forum_post_for_current_forum_source.submission_url not in dpu.values(
@@ -122,7 +122,7 @@ def main_loop(MaxIterations, Iteration_Interval_Time):
                 PostHistory.commit_post_to_post_history(post_history, forum_source)
                 Exit_Handler.disable_lock()
 
-        SleepHandler.SLEEPHANDLER.sleep(Iteration_Interval_Time)
+        time.sleep(Iteration_Interval_Time)
         CurrentIteration += 1
 
 

@@ -1,10 +1,9 @@
 import InterruptibleSleepBinding
-import signal
+import signal, time
 
-class SleepHandlerClass:
-    def sleep(self, duration: int):
-        response: int = InterruptibleSleepBinding.sleep_for_x_milliseconds(duration)
-        if(response!=-1):
-            signal.raise_signal(response)
+def custom_sleep(duration: int):
+    response: int = InterruptibleSleepBinding.sleep_for_x_milliseconds(int(duration)*1000)
+    if(response!=-1):
+        signal.raise_signal(response)
 
-SLEEPHANDLER = SleepHandlerClass()
+time.sleep = custom_sleep
