@@ -202,3 +202,14 @@ def test_convert_post_history_json_to_submission_model_negative_test():
     ])
 
     assert(output_object != expected_object)
+    
+    
+    
+def test_convert_post_history_json_to_submission_model_empty_string():
+    input_object = {}
+
+    output_object = DataclassConversions.convert_post_history_json_to_submission_model(input_object)
+
+    expected_object = SubmissionsModels.SubmissionModelsForAllForumSources()
+
+    assert(output_object == expected_object)

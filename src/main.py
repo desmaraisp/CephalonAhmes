@@ -107,8 +107,8 @@ def main_loop(MaxIterations, Iteration_Interval_Time):
             )
 
             if condition1 and condition2:
-                response_contents = WebRequestMethods.get_response_text_from_generic_url(
-                        latest_forum_post_for_current_forum_source.submission_url)
+                response_contents = (WebRequestMethods.get_response_from_generic_url(
+                        latest_forum_post_for_current_forum_source.submission_url)).text
 
                 submission_contents, submission_title = get_and_parse_notes_from_response_contents(
                         response_contents, latest_forum_post_for_current_forum_source.submission_url, latest_forum_post_for_current_forum_source.submission_title,forum_source.submission_source_forum_url)
