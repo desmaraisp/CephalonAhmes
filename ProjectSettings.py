@@ -19,6 +19,7 @@ class Default():
     CLOUDCUBE_SECRET_ACCESS_KEY = os.getenv('CLOUDCUBE_SECRET_ACCESS_KEY')
     CLOUD_CUBE_BASE_LOC = os.getenv('CLOUD_CUBE_BASE_LOC')
     BotOwnerUsername = 'desmaraisp'
+    Notify = False
     forum_urls_list = [
             "https://forums.warframe.com/forum/36-general-discussion/"
         ]
@@ -26,6 +27,7 @@ class Default():
 
 class Live(Default):
     PrimaryDestinationSubreddit = "warframe"
+    Notify=True
     MaxIterations = -1
     Iteration_Interval_Time = 60000
     LogFileName = "Live.log"

@@ -61,8 +61,9 @@ def make_submission_to_targeted_subreddit(submission_contents, submission_title)
     submission : praw.reddit.Submission = bot_login.subreddit(DestinationSubreddit).submit(
             submission_title, selftext=content_before_limit.strip(), flair_id=news_flair_id, send_replies=False)
 
-    bot_login.redditor(configuration_handler.PROJECTCONFIGURATION.BotOwnerUsername).message(
-                submission_title, submission.url
+    if(configuration_handler.PROJECTCONFIGURATION.Notify):
+        bot_login.redditor(configuration_handler.PROJECTCONFIGURATION.BotOwnerUsername).message(
+                subject= submission_title, message=submission.url
             )
 
     while content_after_limit:
