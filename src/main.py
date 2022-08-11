@@ -44,7 +44,7 @@ def get_and_parse_notes_from_response_contents(ResponseContent, url: str, Submis
         logging.getLogger().warning("Submission Ignored with title {}.".format(SubmissionTitle))
         return None, None
 
-    automatic_message = "\n------\n^(This action was performed automatically, if you see any mistakes, please tag /u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(
+    automatic_message = "\n------\n^(This action was performed automatically, if you see any mistakes, please tag u/{}, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)".format(
             configuration_handler.PROJECTCONFIGURATION.BotOwnerUsername)
     post_contents = "[Source]({})\n\n{}{}".format(
             url, post_contents, automatic_message)
