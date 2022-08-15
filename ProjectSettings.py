@@ -29,7 +29,7 @@ class Live(Default):
     PrimaryDestinationSubreddit = "warframe"
     Notify=True
     MaxIterations = -1
-    Iteration_Interval_Time = 60000
+    Iteration_Interval_Time = 60
     LogFileName = "Live.log"
     PostHistoryFileName = "SubmissionHistory.Live.json"
     forum_urls_list = [

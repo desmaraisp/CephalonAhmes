@@ -18,16 +18,15 @@ class ExitHandlerClass:
     _sigint_ignore : SigintIgnore = SigintIgnore()
 
     def ExitFunction(self):
+        logging.getLogger().warning("Calling atexit function")
         s3b.push_post_history_to_bucket(self._post_history)
         LoggingUtilities.commit_string_logger_to_bucket()
         self._browser.quit()
 
     def excepthook(self, exc_type, exc_value, exc_traceback):
-        if issubclass(exc_type, KeyboardInterrupt):
-            sys.__excepthook__(exc_type, exc_value, exc_traceback)
-            return
-        logging.getLogger().critical("Uncaught exception",
-                exc_info=(exc_type, exc_value, exc_traceback))
+        if not issubclass(exc_type, KeyboardInterrupt):
+            logging.getLogger().critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
     def set_self_as_signal_handler(self):
         signal.signal(signal.SIGTERM, self)
@@ -43,6 +42,7 @@ class ExitHandlerClass:
         atexit.register(self.ExitFunction)
 
     def __call__(self, _, __):
+        logging.getLogger().warning("Signal handler called, exiting")
         sys.exit()
         
 
@@ -53,4 +53,4 @@ class ExitHandlerClass:
     def disable_lock(self):
         self.set_self_as_signal_handler()
         if(self._sigint_ignore.sigint_detected):
-            self.__call__(None, None)
+            signal.raise_signal(signal.SIGINT)

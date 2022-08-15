@@ -1,4 +1,3 @@
-import src.SleepHandler
 from src import (
         DataclassConversions,
         HTMLCorrections as HTML_Corrections,
@@ -83,6 +82,7 @@ def main_loop(MaxIterations, Iteration_Interval_Time):
     post_history: dtc.SubmissionModelsForAllForumSources = s3b.fetch_post_history_from_bucket()
     logging.config.fileConfig(
             configuration_handler.PROJECTCONFIGURATION.LoggingConfigFileName)
+    logging.getLogger().warning("Starting")
 
     Exit_Handler = ExitHandler.ExitHandlerClass(
             browser, post_history)
