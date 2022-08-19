@@ -1,4 +1,4 @@
-pytest==6.2.3
+pytest==7.1.2
 pytest-cov==3.0.0
 httpretty==1.1.4
 moto[s3]==3.1.18
