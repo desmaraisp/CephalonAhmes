@@ -1,6 +1,6 @@
 praw==7.6.0
 beautifulsoup4==4.11.1
-boto3==1.24.58
+boto3==1.24.70
 requests==2.28.1
 selenium==4.4.3
 webdriver-manager==3.8.3
