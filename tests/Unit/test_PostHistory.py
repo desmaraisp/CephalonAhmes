@@ -21,8 +21,6 @@ def test_commit_post_to_post_history():
             )
 
 
-
-
     PostHistory.commit_post_to_post_history(existing_post_history, incoming_changes)
 
 
