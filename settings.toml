@@ -1,0 +1,25 @@
+[PrawSettings]
+SubredditDestinationFallbacks = ["Warframe","scrappertest"]
+Notify = true
+PRAW_CLIENT_ID = "OverrideByEnv"
+PRAW_CLIENT_SECRET = "OverrideByEnv"
+PRAW_USERNAME = "OverrideByEnv"
+PRAW_PASSWORD = "OverrideByEnv"
+
+
+[S3Settings]
+PostHistoryFullFileName = "PostHistory.json"
+S3_BucketName = "CephalonAhmesBucket"
+
+[GeneralSettings]
+forum_urls_list = [
+            "https://forums.warframe.com/forum/3-pc-update-notes/",
+            "https://forums.warframe.com/forum/123-developer-workshop-update-notes/",
+            "https://forums.warframe.com/forum/170-announcements-events/"
+    ]
+footer_message = """
+^(This action was performed automatically, if you see any mistakes, please tag u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)
+^(I have moved to AWS Lambda, RIP Heroku free tier.)
+"""
+LoggingConfigFileName = "logging.ini"
+

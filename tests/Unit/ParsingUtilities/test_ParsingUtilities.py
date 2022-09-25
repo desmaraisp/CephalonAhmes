@@ -3,7 +3,7 @@ import src.ParsingUtilities
 
 
 def test_parse_forum_page_to_pull_latest_posts():
-    with open("tests/Unit/source_for_test_parse_forum_page_to_pull_latest_posts.html") as file:
+    with open("tests/Unit/ParsingUtilities/source_for_test_parse_forum_page_to_pull_latest_posts.html") as file:
         contents = file.read()
 
     individual_submission_model = src.ParsingUtilities.get_latest_submission_dataclass_in_forum_page(contents)

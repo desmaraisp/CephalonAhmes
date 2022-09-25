@@ -1,0 +1,6 @@
+[PrawSettings]
+SubredditDestinationFallbacks = ["test","test2"]
+Notify = true
+
+[S3Settings]
+PostHistoryFullFileName = "testFile"

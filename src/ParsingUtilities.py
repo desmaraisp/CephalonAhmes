@@ -1,6 +1,13 @@
 from datetime import datetime
+import html
+import html2text as htt
 from bs4 import BeautifulSoup
-from src import SubmissionsModels as dtc
+from src import(
+    SubmissionsModels as dtc,
+    ParsingUtilities,
+    StringManipulations,
+    HTMLCorrections
+)
 
 
 def get_post_element_from_full_discussion(soup: BeautifulSoup):
@@ -26,3 +33,24 @@ def get_latest_submission_dataclass_in_forum_page(page_source :str) -> dtc.Indiv
             link_to_latest_post["title"].strip(),
             link_to_latest_post["href"].strip()
     )
+
+def transform_response_contents_to_markdown(ResponseContent, url: str, footer:str):
+    ResponseContent = StringManipulations.remove_all_zero_width_spaces(ResponseContent)
+
+    soup = BeautifulSoup(ResponseContent, 'html.parser')
+    main_post_tag = ParsingUtilities.get_post_element_from_full_discussion(soup)
+    HTMLCorrections.process_html_tag(soup, main_post_tag)
+
+    htt_conf = htt.HTML2Text()
+    htt_conf.use_automatic_links = True
+    htt_conf.body_width = 0
+
+    post_contents = htt_conf.handle(main_post_tag.decode_contents())
+    # Because Reddit's implementation of markdown does not support inline links like this: ![]()
+    post_contents = post_contents.replace("![", '[')
+    post_contents = html.unescape(post_contents)
+
+    post_contents = "[Source]({})\n\n{}\n------\n{}".format(
+            url, post_contents, footer)
+
+    return post_contents

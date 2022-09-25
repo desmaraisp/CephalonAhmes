@@ -127,8 +127,7 @@ def process_tables(tag: Union[bs4elem.Tag, bs4elem.NavigableString]):
 
 
 
-def get_post_contents_from_post_tag(soup: BeautifulSoup, main_post_tag : Union[bs4elem.Tag, bs4elem.NavigableString] ):
-
+def process_html_tag(soup: BeautifulSoup, main_post_tag : Union[bs4elem.Tag, bs4elem.NavigableString] ):
     decompose_all_blockquote_headers(main_post_tag)
     decompose_all_spoiler_headers(main_post_tag)
     decompose_all_edited_on_footers(main_post_tag)
@@ -138,5 +137,3 @@ def get_post_contents_from_post_tag(soup: BeautifulSoup, main_post_tag : Union[b
     propagate_elements_to_children(main_post_tag, soup)
     process_tables(main_post_tag)
     Process_Spoiler(soup)
-
-    return main_post_tag

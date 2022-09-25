@@ -1,0 +1,21 @@
+{
+	"name": "Existing Dockerfile",
+
+	"context": "..",
+	"dockerFile": "../Dockerfile",
+	"build": {
+		"target": "test"
+	},
+	"forwardPorts": [
+		3000,
+		3001
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"bungcip.better-toml"
+			]
+		}
+	}
+}

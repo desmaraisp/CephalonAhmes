@@ -28,4 +28,4 @@ Moon| 117000| 742500| 2304000| 4575000
 
 
 ------
-^(This action was performed automatically, if you see any mistakes, please tag u/desmaraisp, he'll fix them.) [^(Here is my github)](https://github.com/CephalonAhmes/CephalonAhmes)
+Footer
