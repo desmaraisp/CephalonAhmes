@@ -84,3 +84,4 @@ Resources:
       ScheduleExpression: "rate(2 minutes)"
       Targets:
         - Arn: !GetAtt 'CephalonAhmesFunction.Arn'
+          Id: CephalonAhmesFunctionTargetID
