@@ -3,6 +3,7 @@ import typed_settings as ts
 
 @ts.settings()
 class PrawSettings:
+    NotificationDestinationUsername: str = ""
     SubredditDestinationFallbacks: List[str] = []
     Notify: bool = False
     PRAW_CLIENT_ID: str = ts.secret(default="")

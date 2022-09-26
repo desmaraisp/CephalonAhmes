@@ -5,6 +5,7 @@ PRAW_CLIENT_ID = "OverrideByEnv"
 PRAW_CLIENT_SECRET = "OverrideByEnv"
 PRAW_USERNAME = "OverrideByEnv"
 PRAW_PASSWORD = "OverrideByEnv"
+NotificationDestinationUsername = "desmaraisp"
 
 
 [S3Settings]

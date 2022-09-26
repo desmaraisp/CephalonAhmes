@@ -1,9 +1,11 @@
 from pytest import MonkeyPatch
+from requests import delete
 from src import ConfigurationHandler
 
 def test_load_configuration():
     with MonkeyPatch.context() as mp:
         mp.setenv("CEPHALONAHMES_S3_BUCKETNAME", "ROUGE")
+        mp.delenv("CEPHALONAHMES_PRAW_CLIENT_ID", False)
         a, b, c = ConfigurationHandler.init_settings("test")
         
         
