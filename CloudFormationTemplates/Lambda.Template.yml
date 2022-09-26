@@ -67,6 +67,7 @@ Resources:
           PackageType: Image
           Description: CephalonAhmes project
           Role: !GetAtt 'CephalonAhmesFunctionRole.Arn'
+          Timeout: 900
           Environment : 
             Variables: 
               CEPHALONAHMES_PRAW_CLIENT_ID:
