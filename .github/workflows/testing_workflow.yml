@@ -71,6 +71,6 @@ jobs:
           'ConfigurationName' = 'staging'
         }} | ConvertTo-Json | Set-Content -Path ./params.json
 
-        aws cloudformation deploy --template-file .\CloudFormationTemplates\Lambda.Template.yml \
-          --stack-name CephalonAhmesLambda --capabilities CAPABILITY_IAM \
+        aws cloudformation deploy --template-file .\CloudFormationTemplates\Lambda.Template.yml `
+          --stack-name CephalonAhmesLambda --capabilities CAPABILITY_IAM `
           --parameter-overrides file://params.json
