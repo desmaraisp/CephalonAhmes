@@ -10,7 +10,7 @@ NotificationDestinationUsername = "desmaraisp"
 
 [S3Settings]
 PostHistoryFullFileName = "PostHistory.json"
-S3_BucketName = "CephalonAhmesBucket"
+S3_BucketName = "cephalonahmesbucket"
 
 [GeneralSettings]
 forum_urls_list = [

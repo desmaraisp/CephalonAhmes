@@ -19,7 +19,7 @@ Resources:
   CephalonAhmesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: CephalonAhmesBucket
+      BucketName: cephalonahmesbucket
 
   CephalonAhmesFunctionRole:
     Type: AWS::IAM::Role
