@@ -63,12 +63,12 @@ jobs:
         aws ecr get-login-password | docker login --username AWS --password-stdin  ($RepositoryUri -split "/")[0]
         docker push $RepositoryUri
 
-        @{'Parameters' = @{
-          'CEPHALONAHMES_PRAW_CLIENT_ID' = "${{ secrets.PRAW_CLIENT_ID }}",
-          'CEPHALONAHMES_PRAW_CLIENT_SECRET' = "${{ secrets.PRAW_CLIENT_SECRET }}",
-          'CEPHALONAHMES_PRAW_PASSWORD' = "${{ secrets.PRAW_PASSWORD }}",
-          'CEPHALONAHMES_PRAW_USERNAME' = "${{ secrets.PRAW_USERNAME }}",
-          'ConfigurationName' = 'staging'
+        @{Parameters = @{
+          CEPHALONAHMES_PRAW_CLIENT_ID = "${{ secrets.PRAW_CLIENT_ID }}";
+          CEPHALONAHMES_PRAW_CLIENT_SECRET = "${{ secrets.PRAW_CLIENT_SECRET }}";
+          CEPHALONAHMES_PRAW_PASSWORD = "${{ secrets.PRAW_PASSWORD }}";
+          CEPHALONAHMES_PRAW_USERNAME = "${{ secrets.PRAW_USERNAME }}";
+          ConfigurationName = 'staging'
         }} | ConvertTo-Json | Set-Content -Path ./params.json
 
         aws cloudformation deploy --template-file .\CloudFormationTemplates\Lambda.Template.yml `
