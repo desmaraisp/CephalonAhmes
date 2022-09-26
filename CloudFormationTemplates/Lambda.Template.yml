@@ -16,6 +16,8 @@ Parameters:
 
 
 Resources:
+
+
   CephalonAhmesBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -31,13 +33,22 @@ Resources:
               {
                 "Version": "2012-10-17",
                 "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Action": ["s3:PutObject"],
-                        "Resource": [
-                            "${CephalonAhmesBucket.Arn}"
-                        ]
-                    }
+                  {
+                      "Effect": "Allow",
+                      "Action": ["s3:PutObject"],
+                      "Resource": [
+                          "${CephalonAhmesBucket.Arn}"
+                      ]
+                  },
+                  {
+                    "Effect": "Allow",
+                    "Action": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:PutLogEvents"
+                    ],
+                    "Resource": "*"
+                  }
                 ]
               }
         AssumeRolePolicyDocument:
