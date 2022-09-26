@@ -35,7 +35,7 @@ def fetch_and_parse_forum_pages_and_return_latest_posts_for_all_sources(forums_u
 def main():
     praw_settings, s3_settings, general_settings = configuration_handler.init_settings(os.getenv('ConfigurationName'))
 
-    logging.config.fileConfig(s3_settings.LoggingConfigFileName)
+    logging.config.fileConfig(general_settings.LoggingConfigFileName)
     logging.getLogger().info("Starting application")
 
     browser: webdriver.Chrome = SeleniumUtilities.start_chrome_browser()

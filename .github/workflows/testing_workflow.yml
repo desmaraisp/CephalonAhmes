@@ -75,3 +75,5 @@ jobs:
         aws cloudformation deploy --template-file ./CloudFormationTemplates/Lambda.Template.yml `
           --stack-name CephalonAhmesLambda --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM `
           --parameter-overrides file://params.json
+        
+        aws lambda update-function-code --function-name "CephalonAhmesFunction" --image-uri "$($RepositoryUri):latest"
