@@ -3,5 +3,5 @@ pytest-cov==3.0.0
 httpretty==1.1.4
 moto[s3]==4.0.0
 pytest-mock==3.8.2
-pytest-localserver==0.6.0
+pytest-localserver==0.7.0
 autopep8==1.7.0
