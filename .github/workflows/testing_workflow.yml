@@ -55,22 +55,23 @@ jobs:
         AWS_DEFAULT_REGION: 'us-east-1'
       run: |
         echo "Deploying"
+
         aws cloudformation deploy --template-file ./CloudFormationTemplates/ECR.Template.yml --stack-name CephalonAhmesECR --capabilities CAPABILITY_IAM
+        
         $RepositoryUri  = aws cloudformation list-exports --query "Exports[?Name=='CephalonAhmesRepositoryUri'].Value" --no-paginate --output text
-
         docker build . -t $RepositoryUri --target release
-
         aws ecr get-login-password | docker login --username AWS --password-stdin  ($RepositoryUri -split "/")[0]
         docker push $RepositoryUri
 
+
         @{Parameters = @{
-          CEPHALONAHMES_PRAW_CLIENT_ID = "${{ secrets.PRAW_CLIENT_ID }}";
-          CEPHALONAHMES_PRAW_CLIENT_SECRET = "${{ secrets.PRAW_CLIENT_SECRET }}";
-          CEPHALONAHMES_PRAW_PASSWORD = "${{ secrets.PRAW_PASSWORD }}";
-          CEPHALONAHMES_PRAW_USERNAME = "${{ secrets.PRAW_USERNAME }}";
+          CEPHALONAHMESPRAWCLIENTID = "${{ secrets.PRAW_CLIENT_ID }}";
+          CEPHALONAHMESPRAWCLIENTSECRET = "${{ secrets.PRAW_CLIENT_SECRET }}";
+          CEPHALONAHMESPRAWPASSWORD = "${{ secrets.PRAW_PASSWORD }}";
+          CEPHALONAHMESPRAWUSERNAME = "${{ secrets.PRAW_USERNAME }}";
           ConfigurationName = 'staging'
         }} | ConvertTo-Json | Set-Content -Path ./params.json
 
         aws cloudformation deploy --template-file ./CloudFormationTemplates/Lambda.Template.yml `
-          --stack-name CephalonAhmesLambda --capabilities CAPABILITY_IAM `
+          --stack-name CephalonAhmesLambda --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM `
           --parameter-overrides file://params.json

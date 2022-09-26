@@ -6,7 +6,7 @@ Resources:
   CephalonAhmesECRRepo:
     Type: AWS::ECR::Repository
     Properties: 
-      RepositoryName: CephalonAhmesECRRepo
+      RepositoryName: cephalonahmesrepo
       ImageTagMutability: MUTABLE
       LifecyclePolicy:
         LifecyclePolicyText: |

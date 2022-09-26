@@ -3,13 +3,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: 'CephalonAhmes Lambda stack'
 
 Parameters:
-  PRAW_USERNAME:
+  CEPHALONAHMESPRAWUSERNAME:
     Type: String
-  PRAW_PASSWORD:
+  CEPHALONAHMESPRAWPASSWORD:
     Type: String
-  PRAW_CLIENT_SECRET:
+  CEPHALONAHMESPRAWCLIENTSECRET:
     Type: String
-  PRAW_CLIENT_ID:
+  CEPHALONAHMESPRAWCLIENTID:
+    Type: String
+  ConfigurationName:
     Type: String
 
 
@@ -26,20 +28,18 @@ Resources:
         Policies:
           - PolicyName: CephalonAhmesBucketFullAccess
             PolicyDocument: !Sub |
-{
-  "Version": "2012-10-17",
-  "Statement": [
-      {
-          "Effect": "Allow",
-          "Action": [
-              "s3:PutObject",
-          ],
-          "Resource": [
-              "${CephalonAhmesBucket.Arn}"
-          ]
-      }
-  ]
-}
+              {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": ["s3:PutObject"],
+                        "Resource": [
+                            "${CephalonAhmesBucket.Arn}"
+                        ]
+                    }
+                ]
+              }
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -58,14 +58,16 @@ Resources:
           Role: !GetAtt 'CephalonAhmesFunctionRole.Arn'
           Environment : 
             Variables: 
-              PRAW_CLIENT_ID:
-                Ref: PRAW_CLIENT_ID
-              PRAW_CLIENT_SECRET: 
-                Ref: PRAW_CLIENT_SECRET
-              PRAW_PASSWORD: 
-                Ref: PRAW_PASSWORD
-              PRAW_USERNAME: 
-                Ref: PRAW_USERNAME
+              CEPHALONAHMES_PRAW_CLIENT_ID:
+                Ref: CEPHALONAHMESPRAWCLIENTID
+              CEPHALONAHMES_PRAW_CLIENT_SECRET: 
+                Ref: CEPHALONAHMESPRAWCLIENTSECRET
+              CEPHALONAHMES_PRAW_PASSWORD: 
+                Ref: CEPHALONAHMESPRAWPASSWORD
+              CEPHALONAHMES_PRAW_USERNAME: 
+                Ref: CEPHALONAHMESPRAWUSERNAME
+              ConfigurationName: 
+                Ref: ConfigurationName
           FunctionName: CephalonAhmesFunction
           Code:
             ImageUri: !Join
