@@ -1,4 +1,4 @@
-import praw
+import praw, praw.models
 from src import (
         ConfigurationHandler as cgf,
         StringManipulations as SMS
@@ -64,11 +64,15 @@ class PrawUtilities:
         content_before_limit, content_after_limit = SMS.split_string_on_last_separator_before_cutoff_length(
                 submission_contents, 40000, ['\n\n', '\n'])
 
-        submission : praw.reddit.Submission = bot_login.subreddit(DestinationSubreddit).submit(
-                submission_title, selftext=content_before_limit.strip(), flair_id=news_flair_id, send_replies=False)
+        submission : praw.models.Submission = bot_login.subreddit(DestinationSubreddit).submit(
+                submission_title,
+                selftext=content_before_limit.strip(),
+                flair_id=news_flair_id,
+                send_replies=False
+        )
 
         if(self.settings.Notify):
-            bot_login.redditor(self.settings.BotOwnerUsername).message(
+            bot_login.redditor(self.settings.NotificationDestinationUsername).message(
                     subject= submission_title, message=submission.url
                 )
 

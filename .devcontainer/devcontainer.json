@@ -6,6 +6,7 @@
 	"build": {
 		"target": "test"
 	},
+	"runArgs": ["--env-file","${localWorkspaceFolder}/.env"],
 	"forwardPorts": [
 		3000,
 		3001

@@ -7,3 +7,4 @@ env/
 coverage.xml
 pytest.xml
 pytest-coverage.txt
+.env

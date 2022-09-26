@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Dict
-import pytest, pytest_mock
+import pytest, pytest_mock, praw.models, os, uuid
 from src import (
         ConfigurationHandler as cgf,
         StringManipulations as SMS,
@@ -86,3 +86,38 @@ def test_get_destination_subreddit_from_configuration(mock_praw):
     result: str = praw_utilities.get_destination_subreddit_from_configuration("test5")
     assert(result=="sub2")
 
+
+def test_make_submission_to_targeted_subreddit():
+    praw_settings = cgf.PrawSettings(
+        Notify=True,
+        PRAW_CLIENT_ID=os.environ["PRAW_CLIENT_ID"],
+        PRAW_CLIENT_SECRET=os.environ["PRAW_CLIENT_SECRET"],
+        PRAW_PASSWORD=os.environ["PRAW_PASSWORD"],
+        PRAW_USERNAME=os.environ["PRAW_USERNAME"],
+        SubredditDestinationFallbacks=["scrappertest"],
+        NotificationDestinationUsername=os.environ["PRAW_USERNAME"]
+    )
+    praw_utilities: pru.PrawUtilities = pru.PrawUtilities(praw_settings)
+
+    subject = "test-submission-"+ str(uuid.uuid4())
+
+    praw_utilities.make_submission_to_targeted_subreddit(
+        submission_contents="a"*35000 + "\n\n" + "a"*9000,
+        submission_title=subject
+    )
+
+    session = praw_utilities.start_reddit_session()
+
+    messages: List[praw.models.Message] = session.inbox.messages(limit=5)
+
+    corresponding_messages = [message for message in messages if message.subject == subject]
+
+    assert(len(corresponding_messages) != 0)
+    session.inbox.mark_read(corresponding_messages)
+
+    submissions: List[praw.models.Submission] = session.subreddit("scrappertest").new(limit=5)
+    corresponding_submissions = [submission for submission in submissions if submission.title == subject]
+
+    assert(len(corresponding_submissions) == 1)
+    assert(len(corresponding_submissions[0].selftext) == 35000)
+    assert(corresponding_submissions[0].num_comments > 0)
