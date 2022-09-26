@@ -1,7 +1,6 @@
 import logging, sys, atexit
 from selenium import webdriver
 from src import (
-        LoggingUtilities,
         S3Utilities
 )
 
