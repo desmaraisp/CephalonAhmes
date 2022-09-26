@@ -33,10 +33,10 @@ def fetch_and_parse_forum_pages_and_return_latest_posts_for_all_sources(forums_u
 
 
 def main():
-    praw_settings, s3_settings, general_settings = configuration_handler.init_settings(os.getenv('ConfigurationName'))
-
-    logging.config.fileConfig(general_settings.LoggingConfigFileName)
+    logging.getLogger().setLevel(logging.INFO)
     logging.getLogger().info("Starting application")
+    
+    praw_settings, s3_settings, general_settings = configuration_handler.init_settings(os.getenv('ConfigurationName'))
 
     browser: webdriver.Chrome = SeleniumUtilities.start_chrome_browser()
     praw_utilities : pru.PrawUtilities = pru.PrawUtilities(praw_settings)

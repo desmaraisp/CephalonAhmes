@@ -23,5 +23,3 @@ footer_message = """
 
 ^(I have found a new home on AWS Lambda, RIP Heroku free tier.)
 """
-LoggingConfigFileName = "logging.ini"
-

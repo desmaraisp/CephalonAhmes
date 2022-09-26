@@ -1,12 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
-
-Description: 'CephalonAhmes ECR stack'
+Description: 'SAM preliminary deployment resources stack'
 
 Resources:
+  SAMCLIBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: aws-sam-cli-changeset-bucket
+      LifecycleConfiguration: 
+        Rules:
+          - Id: DeleteRule
+            Status: Enabled
+            ExpirationInDays: 10
+
   CephalonAhmesECRRepo:
     Type: AWS::ECR::Repository
     Properties: 
-      RepositoryName: cephalonahmesrepo
+      RepositoryName: cephalonahmesmainfuctionrepo
       ImageTagMutability: MUTABLE
       LifecyclePolicy:
         LifecyclePolicyText: |
@@ -23,7 +32,7 @@ Resources:
               "action": { "type": "expire" }
             }]
           }
-
+          
 Outputs:
   CephalonAhmesRepositoryUri:
     Value: !GetAtt CephalonAhmesECRRepo.RepositoryUri

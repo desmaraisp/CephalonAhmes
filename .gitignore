@@ -7,4 +7,5 @@ env/
 coverage.xml
 pytest.xml
 pytest-coverage.txt
-.env
+.envvars
+.aws-sam

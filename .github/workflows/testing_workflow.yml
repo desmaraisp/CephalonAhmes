@@ -15,14 +15,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: docker-practice/actions-setup-docker@master
-
+    
     - name: Run Tests
       shell: pwsh
       run: |
         echo "Starting docker build"
         docker build . -t test --target test
-
-
         $content = @'
         PRAW_CLIENT_ID=${{ secrets.PRAW_CLIENT_ID }}
         PRAW_CLIENT_SECRET=${{ secrets.PRAW_CLIENT_SECRET }}
@@ -30,9 +28,8 @@ jobs:
         PRAW_USERNAME=${{ secrets.PRAW_USERNAME }}
         '@
         
-        $content | Set-Content -Path ./.env
-
-        docker run --env-file ./.env --name pytest test
+        $content | Set-Content -Path ./.envvars
+        docker run --env-file ./.envvars --name pytest test
         echo "Tests completed"
         if($LASTEXITCODE -eq 1){
           throw "Unit tests failed"
@@ -55,25 +52,10 @@ jobs:
         AWS_DEFAULT_REGION: 'us-east-1'
       run: |
         echo "Deploying"
-
-        aws cloudformation deploy --template-file ./CloudFormationTemplates/ECR.Template.yml --stack-name CephalonAhmesECR --capabilities CAPABILITY_IAM
+        aws cloudformation deploy --stack-name CephalonAhmesPipelineResources  --template-file SAMDeploy/SAMPreliminaryDeploy.yml
         
         $RepositoryUri  = aws cloudformation list-exports --query "Exports[?Name=='CephalonAhmesRepositoryUri'].Value" --no-paginate --output text
-        docker build . -t $RepositoryUri --target release
-        aws ecr get-login-password | docker login --username AWS --password-stdin  ($RepositoryUri -split "/")[0]
-        docker push $RepositoryUri
 
-
-        @{Parameters = @{
-          CEPHALONAHMESPRAWCLIENTID = "${{ secrets.PRAW_CLIENT_ID }}";
-          CEPHALONAHMESPRAWCLIENTSECRET = "${{ secrets.PRAW_CLIENT_SECRET }}";
-          CEPHALONAHMESPRAWPASSWORD = "${{ secrets.PRAW_PASSWORD }}";
-          CEPHALONAHMESPRAWUSERNAME = "${{ secrets.PRAW_USERNAME }}";
-          ConfigurationName = 'staging'
-        }} | ConvertTo-Json | Set-Content -Path ./params.json
-
-        aws cloudformation deploy --template-file ./CloudFormationTemplates/Lambda.Template.yml `
-          --stack-name CephalonAhmesLambda --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM `
-          --parameter-overrides file://params.json
-        
-        aws lambda update-function-code --function-name "CephalonAhmesFunction" --image-uri "$($RepositoryUri):latest"
+        sam build --template-file ./SAMDeploy/SAMTemplate.yaml
+        sam deploy --config-file ./SAMDeploy/samconfig.toml --image-repositories "CephalonAhmesFunction=$RepositoryUri" `
+          --parameter-overrides CEPHALONAHMESPRAWCLIENTID=${{ secrets.PRAW_CLIENT_ID }} CEPHALONAHMESPRAWCLIENTSECRET=${{ secrets.PRAW_CLIENT_SECRET }} CEPHALONAHMESPRAWPASSWORD=${{ secrets.PRAW_PASSWORD }} CEPHALONAHMESPRAWUSERNAME=${{ secrets.PRAW_USERNAME }} ConfigurationName=staging

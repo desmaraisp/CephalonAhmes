@@ -1,38 +1,27 @@
-FROM python:3.8-slim as base
+FROM umihico/aws-lambda-selenium-python:3.9.14-selenium4.4.3-chrome106.0.5249.0 as base
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-RUN apt-get -y update
-RUN apt-get -y install git
-RUN apt-get install -y wget
-RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-RUN apt-get -y install ./google-chrome-stable_current_amd64.deb
+RUN yum install -yq git
 
-WORKDIR /app
-COPY logging.ini requirements.txt settings.toml ./
-COPY src ./src
-RUN python -m pip install -r requirements.txt
+RUN python -m pip install --upgrade pip
 
-ENV PATH="${PATH}:/app/chrome"
+COPY requirements.txt ./
+RUN python -m pip install -r requirements.txt --force-reinstall && \
+	rm -rf "./requirements.txt"
 
-CMD ["python", "-m", "src.main"]
+FROM base as test-deps
+COPY requirements-test.txt ./
+RUN pip install -r requirements-test.txt --force-reinstall && \
+	rm -rf "./requirements-test.txt"
 
-
-
-FROM base as test
-
-WORKDIR /app
-COPY pytest.ini requirements-test.txt settings.test.toml ./
-COPY tests ./tests
-RUN python -m pip install -r requirements-test.txt
-
-CMD ["python", "-m", "pytest"]
-
+FROM test-deps as dev
+COPY requirements-dev.txt ./
+RUN pip install -r requirements-dev.txt --force-reinstall && \
+	rm -rf "./requirements-dev.txt"
 
 FROM base as release
+COPY . ./
+CMD [ "app.lambda_handler" ]
 
-WORKDIR /app
-COPY lambda_function.py ./
-RUN python -m pip install awslambdaric
-
-CMD [ "python", "-m", "awslambdaric", "lambda_function.lambda_handler" ]
+FROM test-deps as test
+COPY . ./
+ENTRYPOINT [ "python", "-m", "pytest", "./tests" ]

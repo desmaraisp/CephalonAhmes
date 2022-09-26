@@ -23,10 +23,9 @@
 **/obj
 **/secrets.dev.yaml
 **/__pycache__/
+**/.pytest_cache/
 **/values.dev.yaml
 ./utils/*
 README.md
-env/
-.gitignore
-.vscode/
-.github/
+**/.github/
+.aws-sam

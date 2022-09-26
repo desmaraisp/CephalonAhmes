@@ -4,19 +4,34 @@
 	"context": "..",
 	"dockerFile": "../Dockerfile",
 	"build": {
-		"target": "test"
+		"target": "dev"
 	},
-	"runArgs": ["--env-file","${localWorkspaceFolder}/.env"],
+	"runArgs": ["--env-file","${localWorkspaceFolder}/.envvars"],
 	"forwardPorts": [
 		3000,
 		3001
 	],
 	"customizations": {
 		"vscode": {
+			"settings": { 
+				"python.testing.pytestArgs": [
+					"tests",
+					"--no-cov"
+				],
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestEnabled": true,
+				"python.analysis.indexing": true,
+				"python.linting.enabled": true,
+				"python.linting.flake8Enabled": true
+			},
 			"extensions": [
 				"ms-python.python",
-				"bungcip.better-toml"
+				"bungcip.better-toml",
+				"amazonwebservices.aws-toolkit-vscode"
 			]
 		}
+	},
+	"features": {
+		"docker-from-docker": "latest"
 	}
 }
