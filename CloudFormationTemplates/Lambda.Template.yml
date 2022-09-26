@@ -86,6 +86,13 @@ Resources:
                 - - !ImportValue CephalonAhmesRepositoryUri
                   - ":latest"
 
+  LambdaFunctionLogGroup:
+      Type: "AWS::Logs::LogGroup"
+      DependsOn: "CephalonAhmesFunction"
+      Properties: 
+        RetentionInDays: 14
+        LogGroupName: !Join ["", ["/aws/lambda/", !Ref CephalonAhmesFunction]]
+
   CephalonAhmesCloudWatchRule:
     Type: "AWS::Events::Rule"
     Properties:
