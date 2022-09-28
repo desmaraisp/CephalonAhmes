@@ -40,7 +40,7 @@ jobs:
         if($LASTEXITCODE -eq 1){
           throw "Unit tests failed"
         }
-        docker cp pytest:/app/coverage.xml ./coverage.xml
+        docker cp pytest:/var/task/coverage.xml ./coverage.xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
