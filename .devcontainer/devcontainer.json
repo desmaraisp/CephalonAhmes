@@ -30,8 +30,5 @@
 				"amazonwebservices.aws-toolkit-vscode"
 			]
 		}
-	},
-	"features": {
-		"docker-from-docker": "latest"
 	}
 }

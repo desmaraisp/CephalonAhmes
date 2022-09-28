@@ -1,8 +1,7 @@
 from selenium import webdriver
-import selenium
 from tempfile import mkdtemp
 from selenium.webdriver.chrome.service import Service
-from src import ConfigurationHandler as configuration_handler
+
 
 def start_chrome_browser() -> webdriver.Chrome:
     chrome_options: webdriver.ChromeOptions = webdriver.chrome.options.Options()
@@ -21,5 +20,5 @@ def start_chrome_browser() -> webdriver.Chrome:
     chrome_options.add_argument(f"--disk-cache-dir={mkdtemp()}")
     chrome_options.add_argument("--remote-debugging-port=9222")
 
-    return webdriver.Chrome("/opt/chromedriver",
-                              options=chrome_options)
+    return webdriver.Chrome(service=Service("/opt/chromedriver"),
+                            options=chrome_options)
