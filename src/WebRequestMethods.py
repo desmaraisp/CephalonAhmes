@@ -2,8 +2,6 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 from fake_useragent import UserAgent
 
-ua = UserAgent(fallback='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36')
-
 def get_response_from_generic_url(url: str, MaxRetries: int = 5) -> requests.Response:
     session = requests.Session()
 
@@ -19,7 +17,7 @@ def get_response_from_generic_url(url: str, MaxRetries: int = 5) -> requests.Res
     headers={
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         "Pragma": "no-cache, no-store, must-revalidate",
-        'User-Agent': ua.random,
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
         'referer': "https://google.com"
     }
     
