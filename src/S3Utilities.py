@@ -2,7 +2,7 @@ import boto3, json
 from botocore.errorfactory import ClientError
 from src import (
     ConfigurationHandler as cgh,
-    SubmissionsModels as models,
+    Models as models,
     DataclassConversions
 )
 
@@ -33,7 +33,7 @@ class S3Utilities:
 
         return cloud_cube_object['Body'].read().decode('utf-8')
 
-    def fetch_post_history_from_bucket(self) -> models.SubmissionModelsForAllForumSources:
+    def fetch_post_history_from_bucket(self) -> models.SubmissionListForMultipleSources:
         PostHistory_json = json.loads(self.fetch_cloudcube_contents(
                 self.settings.PostHistoryFullFileName,
                 "{}"
@@ -41,7 +41,7 @@ class S3Utilities:
         )
         return DataclassConversions.convert_post_history_json_to_submission_model(PostHistory_json)
 
-    def push_post_history_to_bucket(self, post_history: models.SubmissionModelsForAllForumSources):
+    def push_post_history_to_bucket(self, post_history: models.SubmissionListForMultipleSources):
         post_history_json : dict = DataclassConversions.convert_post_history_model_to_json(post_history)
 
         self.get_cloudcube_file_object(self.settings.PostHistoryFullFileName).put(

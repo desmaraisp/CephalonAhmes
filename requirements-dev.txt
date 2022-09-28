@@ -1,3 +1,4 @@
 aws-sam-cli
 autopep8==1.7.0
 flake8==5.0.4
+mypy==0.981

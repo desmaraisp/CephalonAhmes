@@ -1,25 +1,32 @@
 [PrawSettings]
-SubredditDestinationFallbacks = ["Warframe","scrappertest"]
-Notify = true
 PRAW_CLIENT_ID = "OverrideByEnv"
 PRAW_CLIENT_SECRET = "OverrideByEnv"
 PRAW_USERNAME = "OverrideByEnv"
 PRAW_PASSWORD = "OverrideByEnv"
+SubredditDestinationFallbacks = ["Warframe","scrappertest"]
 NotificationDestinationUsername = "desmaraisp"
+Notify = true
 
 
 [S3Settings]
 PostHistoryFullFileName = "PostHistory.json"
 S3_BucketName = "cephalonahmesbucket"
 
+
 [GeneralSettings]
-forum_urls_list = [
-            "https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc",
-            "https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc",
-            "https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc",
-    ]
 footer_message = """
 ^(This action was performed automatically, if you see any mistakes, please tag u/desmaraisp, he'll fix them.) [^(Here is my github.)](https://github.com/CephalonAhmes/CephalonAhmes)
 
 ^(I have found a new home on AWS Lambda, RIP Heroku free tier.)
 """
+
+
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl= "https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/3-pc-update-notes.xml"
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes.xml"
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl="https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/170-announcements-events.xml"

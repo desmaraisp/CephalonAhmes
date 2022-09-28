@@ -9,3 +9,4 @@ pytest.xml
 pytest-coverage.txt
 .envvars
 .aws-sam
+.mypy_cache

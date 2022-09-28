@@ -86,7 +86,7 @@ def test_eliminate_and_propagate_tag():
     InitialString = """<div><strong>String1<a>String2</a>String3</strong><div><strong>String4<a>String5</a></strong></div></div>"""
     soup = BeautifulSoup(InitialString, 'html.parser')
 
-    htmlc.eliminate_and_propagate_tag(soup, "strong", soup)
+    htmlc.eliminate_and_propagate_tag(soup, "strong")
 
     assert soup.decode_contents()=="""
 		<div>
@@ -109,7 +109,7 @@ def test_convert_iframes_to_link():
     InitialString = """<iframe src="iframesrc" data-embed-src="iframedatasrc"></iframe><iframe src="iframesrc"></iframe>"""
     soup = BeautifulSoup(InitialString, 'html.parser')
 
-    htmlc.convert_iframes_to_link(soup, soup)
+    htmlc.convert_iframes_to_link(soup)
 
     assert soup.decode_contents()=="""<a>iframedatasrc</a><a>iframesrc</a>"""
 

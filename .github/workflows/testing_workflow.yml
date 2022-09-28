@@ -56,7 +56,7 @@ jobs:
         echo "Deploying"
         aws cloudformation deploy --stack-name CephalonAhmesPipelineResources  --template-file SAMDeploy/SAMPreliminaryDeploy.yml
         
-        $RepositoryUri  = aws cloudformation list-exports --query "Exports[?Name=='CephalonAhmesRepositoryUri'].Value" --no-paginate --output text
+        $RepositoryUri = aws cloudformation list-exports --query "Exports[?Name=='CephalonAhmesRepositoryUri'].Value" --no-paginate --output text
 
         sam build --template-file ./SAMDeploy/SAMTemplate.yaml
         sam deploy --config-file ./SAMDeploy/samconfig.toml --image-repositories "CephalonAhmesFunction=$RepositoryUri" `

@@ -1,28 +1,75 @@
 from typing import List, Tuple
 import typed_settings as ts
 
+def ThrowValidationException(message: str):
+    raise ValueError(message)
+
+def NotEmptyValue(instance, attribute, value):
+    if(not value):  ThrowValidationException(f"{attribute.name} must not be empty")
+
+def NotEmptyItemsInList(instance, attribute, value: List):
+    if not all(value):
+        ThrowValidationException(f"All items in {attribute.name} must not be empty")
+
 
 @ts.settings()
 class PrawSettings:
-    NotificationDestinationUsername: str = ""
-    SubredditDestinationFallbacks: List[str] = []
-    Notify: bool = False
-    PRAW_CLIENT_ID: str = ts.secret(default="")
-    PRAW_CLIENT_SECRET: str = ts.secret(default="")
-    PRAW_USERNAME: str = ts.secret(default="")
-    PRAW_PASSWORD: str = ts.secret(default="")
+    PRAW_CLIENT_ID: str = ts.secret(
+        validator= NotEmptyValue,
+        default=""
+    )
+    PRAW_CLIENT_SECRET: str = ts.secret(
+        validator= NotEmptyValue,
+        default=""
+    )
+    PRAW_USERNAME: str = ts.secret(
+        validator= NotEmptyValue,
+        default=""
+    )
+    PRAW_PASSWORD: str = ts.secret(
+        validator= NotEmptyValue,
+        default=""
+    )
+    NotificationDestinationUsername: str = ts.option(
+        validator= NotEmptyValue,
+        default=""
+    )
+    SubredditDestinationFallbacks: List[str] = ts.option(
+        validator= [NotEmptyValue, NotEmptyItemsInList],
+        default=[]
+    )
+    Notify: bool = ts.option(default=True)
+
     
     
 @ts.settings()
 class S3Settings:
-    PostHistoryFullFileName: str = ""
-    S3_BucketName: str = ""
+    PostHistoryFullFileName: str = ts.option(
+        validator= NotEmptyValue,
+        default=""
+    )
+    S3_BucketName: str = ts.option(
+        validator= NotEmptyValue,
+        default=""
+    )
 
+@ts.settings()
+class RSSFeedURL:
+    XMLUrl: str = ts.option(
+        validator= NotEmptyValue, 
+        default=""
+    )
+    RefreshUrl: str = ts.option(default= None)
 
 @ts.settings()
 class GeneralSettings:
-    forum_urls_list: List[str] = []
-    footer_message: str = ""
+    forum_urls_list: List[RSSFeedURL] = ts.option(
+        validator= [ NotEmptyValue, NotEmptyItemsInList],
+        default=[]
+    )
+    footer_message: str = ts.option(
+        default=""
+    )
 
 
 def init_settings(current_configuration_name: str) -> Tuple[PrawSettings, S3Settings, GeneralSettings]:

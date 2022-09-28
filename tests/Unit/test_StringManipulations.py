@@ -4,15 +4,15 @@ def test_Check_Title_Validity():
     title = "PSA: TestTitle"
     Forum = "Test"
 
-    formatted, valid = StringManipulations.Check_Title_Validity(title, Forum)
-    assert formatted == "TestTitle"
-    assert valid==True
+    title, valid = StringManipulations.Check_Title_Validity(title, Forum)
+    assert title == "TestTitle"
+    assert(valid)
 
     title = "Update1+Hotfix1.1"
-    Forum = "https://forums.warframe.com/forum/3-pc-update-notes/"
+    Forum = "https://forums.warframe.com/forum/3-pc-update-notes.xml"
 
-    formatted, valid = StringManipulations.Check_Title_Validity(title, Forum)
-    assert valid==False
+    title, valid = StringManipulations.Check_Title_Validity(title, Forum)
+    assert not valid
 
 
 

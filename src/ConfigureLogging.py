@@ -1,0 +1,61 @@
+import logging, json
+
+class FormatterJSON(logging.Formatter):
+    def __init__(self, time_format: str = "%Y-%m-%dT%H:%M:%S", msec_format: str = "%s.%03dZ"):
+        self.default_time_format = time_format
+        self.default_msec_format = msec_format
+        self.datefmt = None
+
+    
+    def format(self, record):
+        record.asctime = self.formatTime(record, self.datefmt)
+        j = {
+            'Level': record.levelname,
+            'Timestamp': '%(asctime)s.%(msecs)dZ' % dict(asctime=record.asctime, msecs=record.msecs),
+            'Message': record.getMessage(),
+            'Module': record.module,
+            'Extra Data': record.__dict__.get('data', {}),
+        }
+        if getattr(record, 'aws_request_id', None):
+            j['AWS Request ID']= getattr(record, 'aws_request_id'),
+        
+        if record.exc_info:
+            if not record.exc_text:
+                record.exc_text = self.formatException(record.exc_info)
+
+        if record.exc_text:
+            j["Exc Info"] = record.exc_text
+
+        if record.stack_info:
+            j["Stacktrace"] = self.formatStack(record.stack_info)
+
+        return json.dumps(j)
+    
+
+
+def ConfigureLogging():
+    logging.getLogger().handlers.clear()
+
+    formatter = FormatterJSON()
+    JSONHandler = logging.StreamHandler()
+    JSONHandler.setFormatter(formatter)
+    
+    logger = logging.getLogger()
+    logger.setLevel(logging.ERROR)
+    logger.addHandler(JSONHandler)
+
+    logger2 = logging.getLogger("CephalonAhmes")
+    logger2.setLevel(logging.INFO)
+    
+    
+if __name__ == "__main__":
+    ConfigureLogging()
+    logging.getLogger().info("DoNotShow")
+    logging.getLogger().error("DoShow")
+    logging.getLogger("CephalonAhmes").info("DoShow")
+    logging.getLogger().error(Exception("test"))
+    logging.getLogger().error("test", extra={"data":["test", "test-data"]})
+    try:
+        raise ValueError("test err")
+    except Exception as e:
+        logging.getLogger().exception(e, stack_info=True)

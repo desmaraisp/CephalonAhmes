@@ -1,10 +1,10 @@
-from src import SubmissionsModels as dtc
+from src import Models as dtc
 import dataclass_wizard
 
 
-def convert_post_history_model_to_json(post_history: dtc.SubmissionModelsForAllForumSources) -> dict:
+def convert_post_history_model_to_json(post_history: dtc.SubmissionListForMultipleSources) -> dict:
     return dataclass_wizard.asdict(post_history)
 
 
-def convert_post_history_json_to_submission_model(json: dict) -> dtc.SubmissionModelsForAllForumSources:
-    return dataclass_wizard.fromdict(dtc.SubmissionModelsForAllForumSources, json)
+def convert_post_history_json_to_submission_model(json: dict) -> dtc.SubmissionListForMultipleSources:
+    return dataclass_wizard.fromdict(dtc.SubmissionListForMultipleSources, json)

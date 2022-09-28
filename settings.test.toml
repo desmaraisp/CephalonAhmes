@@ -1,6 +1,25 @@
 [PrawSettings]
+PRAW_CLIENT_ID = "OverrideByEnv"
+PRAW_CLIENT_SECRET = "OverrideByEnv"
+PRAW_USERNAME = "OverrideByEnv"
+PRAW_PASSWORD = "OverrideByEnv"
 SubredditDestinationFallbacks = ["test","test2"]
+NotificationDestinationUsername = "desmaraisp"
 Notify = true
+
 
 [S3Settings]
 PostHistoryFullFileName = "testFile"
+S3_BucketName = "cephalonahmesbucket"
+
+
+[GeneralSettings]
+footer_message = "footer"
+
+
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl= "test_url"
+XMLUrl="test-xml"
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl="test-url2"
+XMLUrl="test-xml2"

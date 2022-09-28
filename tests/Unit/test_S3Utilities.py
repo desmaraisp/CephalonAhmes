@@ -4,7 +4,8 @@ from src import (
 )
 import boto3, pytest
 from moto import mock_s3
-from src.SubmissionsModels import IndividualSubmissionModel, SubmissionModelsForAllForumSources, SubmissionModelsForSingleForumSource
+from src.Models import SubmissionModel, SubmissionListForMultipleSources, SubmissionsListForSingleSource
+from datetime import datetime
 
 def test_fetch_cloudcube_contents_notfound():
     settings = cgh.S3Settings(
@@ -24,7 +25,8 @@ def test_fetch_cloudcube_contents_notfound():
     
 def test_fetch_cloudcube_contents_found():
     settings = cgh.S3Settings(
-        S3_BucketName="TestBucket"
+        S3_BucketName="TestBucket",
+        PostHistoryFullFileName="File.txt"
     )
 
     s3Utilities = S3Utilities.S3Utilities(settings)
@@ -33,10 +35,10 @@ def test_fetch_cloudcube_contents_found():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
 
-        object = conn.Object(settings.S3_BucketName, 'File.txt')
+        object = conn.Object(settings.S3_BucketName, settings.PostHistoryFullFileName)
         object.put(Body=b"BytesContent")
         
-        result = s3Utilities.fetch_cloudcube_contents("File.txt", "")
+        result = s3Utilities.fetch_cloudcube_contents(settings.PostHistoryFullFileName, "")
 
         assert(result=="BytesContent")
 
@@ -70,14 +72,17 @@ def test_fetch_post_history_from_bucket_Exists():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
 
-        model = SubmissionModelsForAllForumSources(
+        model = SubmissionListForMultipleSources(
             forum_sources= [
-                SubmissionModelsForSingleForumSource(
-                    submission_source_forum_url= "url",
+                SubmissionsListForSingleSource(
+                    rss_source_url= "url",
                     submissions_list= [
-                        IndividualSubmissionModel(
-                            submission_title="test",
-                            submission_url="test"
+                        SubmissionModel(
+                            title="test",
+                            link="test",
+                            contents="",
+                            pub_date=datetime(year=20, month=3, day=19),
+                            guid=123
                         )
                     ]
                 )

@@ -12,7 +12,7 @@ def get_response_from_generic_url(url: str, MaxRetries: int = 5) -> requests.Res
 
     session.mount('http://', HTTPAdapter(max_retries=retries))
     session.mount('https://', HTTPAdapter(max_retries=retries))
-
+    
     try:
         return session.get(url, timeout=20)
     except Exception as e:

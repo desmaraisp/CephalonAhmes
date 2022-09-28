@@ -14,20 +14,18 @@ def split_string_on_last_separator_before_cutoff_length(content, limit, separato
             continue
 
         return (
-                        content[:locations_of_separators_in_content_before_limit[-1]],
-                        content[locations_of_separators_in_content_before_limit[-1] + len(separator):]
+            content[:locations_of_separators_in_content_before_limit[-1]],
+            content[locations_of_separators_in_content_before_limit[-1] + len(separator):]
                 )
 
     return content[:limit], content[limit:]
 
 
 
-def Check_Title_Validity(title, ForumPage):
+def Check_Title_Validity(title, ForumPage) -> Tuple[str, bool]:
     title = title.replace("PSA: ", "").strip()
 
-    if "+" in title and ForumPage == "https://forums.warframe.com/forum/3-pc-update-notes/":
-        return title, False  # Excludes hotfixes as they are mostly duplicates
-    return title, True
+    return title, not ("+" in title and ForumPage == "https://forums.warframe.com/forum/3-pc-update-notes.xml")
 
 def remove_all_zero_width_spaces(string):
     return string.replace(

@@ -1,207 +1,105 @@
+import pytest
 from src import (
         DataclassConversions,
-        SubmissionsModels
+        Models
 )
+from datetime import datetime
 
+@pytest.fixture
+def shared_class_object():
+    individual_submission_model2 = Models.SubmissionModel(
+        contents="contents",
+        guid=12,
+        link="link",
+        pub_date=datetime(year=20,month=2,day=2),
+        title="title"
+    )
 
-def test_convert_post_history_model_to_json():
-    individual_submission_model2 = SubmissionsModels.IndividualSubmissionModel(
-            "submission_title2", "submission_url2")
-
-    input_object = SubmissionsModels.SubmissionModelsForAllForumSources([
-            SubmissionsModels.SubmissionModelsForSingleForumSource("test", [
-                    SubmissionsModels.IndividualSubmissionModel(
-                            "submission_title", "submission_url"),
+    class_object = Models.SubmissionListForMultipleSources(
+        forum_sources=[
+            Models.SubmissionsListForSingleSource(
+                rss_source_url="test", 
+                submissions_list=[
+                    Models.SubmissionModel(
+                        title="submission_title",
+                        link="submission_url",
+                        guid=123,
+                        contents="contents2",
+                        pub_date=datetime(year=202,month=5,day=6)
+                    ),
                     individual_submission_model2
-            ]),
-
-            SubmissionsModels.SubmissionModelsForSingleForumSource("test2", [
-                    individual_submission_model2, individual_submission_model2
-            ])
-    ])
-
-    output_object = DataclassConversions.convert_post_history_model_to_json(
-            input_object)
-
-    expected_object = {
-            "forum_sources": [
-                    {
-                            "submission_source_forum_url": "test",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "submission_title",
-                                            "submission_url": "submission_url"
-                                    },
-                                    {
-                                            "submission_title": "submission_title2",
-                                            "submission_url": "submission_url2"}
-                            ]
-                    },
-                    {
-                            "submission_source_forum_url": "test2",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "submission_title2",
-                                            "submission_url": "submission_url2"
-                                    },
-                                    {
-                                            "submission_title": "submission_title2",
-                                            "submission_url": "submission_url2"
-                                    }
-                            ]
-                    }
-            ]
-    }
-
-    assert(output_object == expected_object)
-
-
-def test_convert_post_history_json_to_submission_model():
-    input_object = {
-            "forum_sources": [
-                    {
-                            "submission_source_forum_url": "testforumurl1",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "title_test1",
-                                            "submission_url": "submission_url1"
-                                    },
-                                    {
-                                            "submission_title": "title_test2",
-                                            "submission_url": "submission_url2"
-                                    }
-                            ]
-                    },
-                    {
-                            "submission_source_forum_url": "testforumurl2",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "title_test3",
-                                            "submission_url": "submission_url3"
-                                    },
-                                    {
-                                            "submission_title": "title_test4",
-                                            "submission_url": "submission_url4"
-                                    }
-                            ]
-                    }
-            ]
-    }
-
-    output_object = DataclassConversions.convert_post_history_json_to_submission_model(
-            input_object)
-
-    expected_object = SubmissionsModels.SubmissionModelsForAllForumSources([
-            SubmissionsModels.SubmissionModelsForSingleForumSource("testforumurl1", 
-                    [
-                            SubmissionsModels.IndividualSubmissionModel(
-                                    "title_test1", "submission_url1"),
-                            SubmissionsModels.IndividualSubmissionModel(
-                                    "title_test2", "submission_url2")
-                    ]
+                ]
             ),
 
-            SubmissionsModels.SubmissionModelsForSingleForumSource("testforumurl2", 
-                    [
-                            SubmissionsModels.IndividualSubmissionModel(
-                                    "title_test3", "submission_url3"),
-                            SubmissionsModels.IndividualSubmissionModel(
-                                    "title_test4", "submission_url4")
-                    ]
+            Models.SubmissionsListForSingleSource(
+                "test2",
+                [
+                    individual_submission_model2, individual_submission_model2
+                ]
             )
-    ])
+        ]
+    )
 
-    assert(output_object == expected_object)
+    return class_object
 
-
-def test_convert_dataclass_models_back_and_forth():
-    input_object = {
-            "forum_sources": [
-                    {
-                            "submission_source_forum_url": "testforumurl1",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "title_test1",
-                                            "submission_url": "submission_url1"
-                                    },
-                                    {
-                                            "submission_title": "title_test2",
-                                            "submission_url": "submission_url2"
-                                    }
-                            ]
-                    },
-                    {
-                            "submission_source_forum_url": "testforumurl2",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "title_test3",
-                                            "submission_url": "submission_url3"
-                                    },
-                                    {
-                                            "submission_title": "title_test4",
-                                            "submission_url": "submission_url4"
-                                    }
-                            ]
-                    }
-            ]
+@pytest.fixture
+def shared_dict_object():
+    return {
+        "forum_sources": [
+                {
+                        "rss_source_url": "test",
+                        "submissions_list": [
+                            {
+                                "title":"submission_title",
+                                "contents":"contents2",
+                                "pub_date":"0202-05-06T00:00:00",
+                                "guid":123,
+                                "link":"submission_url"
+                            },
+                            {
+                                "title":"title",
+                                "contents":"contents",
+                                "pub_date":"0020-02-02T00:00:00",
+                                "guid":12,
+                                "link":"link"
+                            }
+                        ]
+                },
+                {
+                        "rss_source_url": "test2",
+                        "submissions_list": [
+                            {
+                                "title":"title",
+                                "contents":"contents",
+                                "pub_date":"0020-02-02T00:00:00",
+                                "guid":12,
+                                "link":"link"
+                            },
+                            {
+                                "title":"title",
+                                "contents":"contents",
+                                "pub_date":"0020-02-02T00:00:00",
+                                "guid":12,
+                                "link":"link"
+                            }
+                        ]
+                }
+        ]
     }
 
-    output_object = DataclassConversions.convert_post_history_json_to_submission_model(
-            input_object)
+
+def test_convert_post_history_model_to_json_bakc_and_forth(shared_dict_object, shared_class_object):
+    assert(shared_dict_object == DataclassConversions.convert_post_history_model_to_json(shared_class_object))
+    assert(shared_class_object == DataclassConversions.convert_post_history_json_to_submission_model(shared_dict_object))
+
+
+def test_convert_post_history_json_to_submission_model_negative_test(shared_class_object, shared_dict_object):
+    shared_class_object.forum_sources[0].rss_source_url="ChangeValue"
+
     output_object = DataclassConversions.convert_post_history_model_to_json(
-            output_object)
+            shared_class_object)
 
-
-    assert(output_object == input_object)
-    
-    
-def test_convert_post_history_json_to_submission_model_negative_test():
-    input_object = {
-            "forum_sources": [
-                    {
-                            "submission_source_forum_url": "testforumurl1",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "title_test1",
-                                            "submission_url": "submission_url1"
-                                    },
-                                    {
-                                            "submission_title": "title_test2",
-                                            "submission_url": "submission_url2"
-                                    }
-                            ]
-                    },
-                    {
-                            "submission_source_forum_url": "testforumurl2",
-                            "submissions_list": [
-                                    {
-                                            "submission_title": "title_test3",
-                                            "submission_url": "submission_url3"
-                                    },
-                                    {
-                                            "submission_title": "title_test4",
-                                            "submission_url": "submission_url4"
-                                    }
-                            ]
-                    }
-            ]
-    }
-
-    output_object = DataclassConversions.convert_post_history_json_to_submission_model(
-            input_object)
-
-    expected_object = SubmissionsModels.SubmissionModelsForAllForumSources([
-            SubmissionsModels.SubmissionModelsForSingleForumSource("testforumurl1", 
-                    [
-                            SubmissionsModels.IndividualSubmissionModel(
-                                    "title_test1", "submission_url1"),
-                            SubmissionsModels.IndividualSubmissionModel(
-                                    "title_test2", "submission_url2")
-                    ]
-            )
-    ])
-
-    assert(output_object != expected_object)
+    assert(output_object != shared_dict_object)
     
     
     
@@ -210,6 +108,6 @@ def test_convert_post_history_json_to_submission_model_empty_string():
 
     output_object = DataclassConversions.convert_post_history_json_to_submission_model(input_object)
 
-    expected_object = SubmissionsModels.SubmissionModelsForAllForumSources()
+    expected_object = Models.SubmissionListForMultipleSources()
 
     assert(output_object == expected_object)

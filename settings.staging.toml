@@ -2,10 +2,19 @@
 SubredditDestinationFallbacks = ["scrappertest"]
 Notify = false
 
-[GeneralSettings]
-forum_urls_list = [
-            "https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc",
-            "https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc",
-            "https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc",
-            "https://forums.warframe.com/forum/36-general-discussion/?sortby=start_date&sortdirection=desc"
-    ]
+
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl= "https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/3-pc-update-notes.xml"
+
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes.xml"
+
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl="https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/170-announcements-events.xml"
+
+[[GeneralSettings.forum_urls_list]]
+RefreshUrl="https://forums.warframe.com/forum/36-general-discussion/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+XMLUrl="https://forums.warframe.com/forum/36-general-discussion.xml"

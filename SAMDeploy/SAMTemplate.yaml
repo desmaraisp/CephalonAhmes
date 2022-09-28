@@ -34,7 +34,7 @@ Resources:
       PackageType: Image
       FunctionName: CephalonAhmesFunction
       Timeout: 900
-      MemorySize: 3008
+      MemorySize: 128
       Environment : 
         Variables: 
           CEPHALONAHMES_PRAW_CLIENT_ID:

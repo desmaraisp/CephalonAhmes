@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Dict
-import pytest, pytest_mock, praw.models, os, uuid
+import pytest, pytest_mock, praw.models, os, uuid, typed_settings
 from src import (
         ConfigurationHandler as cgf,
-        StringManipulations as SMS,
         PrawUtilities as pru
 )
 
@@ -45,16 +44,11 @@ def mock_praw(mocker: pytest_mock.MockerFixture):
     
     yield mock_function
 
-def test_check_if_post_has_already_been_posted_to_subreddit(mock_praw):
+def test_check_if_post_has_already_been_posted_to_subreddit(mock_praw, mocker):
+    mocker.patch('src.ConfigurationHandler.ThrowValidationException', return_value=None)
+
     praw_utilities: pru.PrawUtilities = pru.PrawUtilities(
-        cgf.PrawSettings(
-            Notify=False,
-            PRAW_CLIENT_ID="",
-            PRAW_CLIENT_SECRET="",
-            PRAW_PASSWORD="",
-            PRAW_USERNAME="",
-            SubredditDestinationFallbacks=[]
-        )
+        cgf.PrawSettings()
     )
     
     result: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test", "sub1")
@@ -67,14 +61,11 @@ def test_check_if_post_has_already_been_posted_to_subreddit(mock_praw):
     assert(result4)
 
 
-def test_get_destination_subreddit_from_configuration(mock_praw):
+def test_get_destination_subreddit_from_configuration(mock_praw, mocker):
+    mocker.patch('src.ConfigurationHandler.ThrowValidationException', return_value=None)
+    
     praw_utilities: pru.PrawUtilities = pru.PrawUtilities(
         cgf.PrawSettings(
-            Notify=False,
-            PRAW_CLIENT_ID="",
-            PRAW_CLIENT_SECRET="",
-            PRAW_PASSWORD="",
-            PRAW_USERNAME="",
             SubredditDestinationFallbacks=["sub1", "sub2"]
         )
     )

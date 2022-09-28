@@ -24,8 +24,11 @@
 **/secrets.dev.yaml
 **/__pycache__/
 **/.pytest_cache/
+**/.mypy_cache/
 **/values.dev.yaml
 ./utils/*
 README.md
 **/.github/
-.aws-sam
+**/.aws-sam/
+**/htmlcov/
+
