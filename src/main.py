@@ -18,7 +18,7 @@ def fetch_and_parse_forum_pages_and_return_latest_posts_for_all_sources(forums_u
     newest_posts_on_warframe_forum = dtc.SubmissionModelsForAllForumSources()
     for forum_url in forums_url_list:
         page_source = WebRequestMethods.get_response_from_generic_url(forum_url)
-        print(page_source.text)
+
         latest_forum_post: dtc.IndividualSubmissionModel = ParsingUtilities.get_latest_submission_dataclass_in_forum_page(
                 page_source.text)
 
