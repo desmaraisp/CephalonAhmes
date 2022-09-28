@@ -1,4 +1,4 @@
-import requests
+import requests, time
 from requests.adapters import HTTPAdapter, Retry
 from selenium import webdriver
 import selenium.common.exceptions as sce
@@ -53,6 +53,9 @@ def fetch_timeout_wrapper(forum_url: str, browser: webdriver.Chrome):
     
 def browser_fetch_updated_forum_page_source(forum_url: str, browser: webdriver.Chrome) -> str:
     browser.get(forum_url)
+    time.sleep(1)
+    print("PAGE SOURCE")
+    print(browser.page_source)
     check_page_success(browser)
     
     navigate_to_force_data_reload(browser)

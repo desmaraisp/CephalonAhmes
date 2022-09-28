@@ -20,6 +20,7 @@ RUN pip install -r requirements-dev.txt --force-reinstall && \
 
 FROM base as release
 COPY . ./
+RUN echo '127.0.0.1 localhost loopback' >> /etc/hosts
 CMD [ "app.lambda_handler" ]
 
 FROM test-deps as test
