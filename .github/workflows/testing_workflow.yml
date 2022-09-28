@@ -26,7 +26,7 @@ jobs:
       shell: pwsh
       run: |
         echo "Starting docker build"
-        docker build . -t test --target test
+        docker build . -t pytestimage --target test
         $content = @'
         PRAW_CLIENT_ID=${{ secrets.PRAW_CLIENT_ID }}
         PRAW_CLIENT_SECRET=${{ secrets.PRAW_CLIENT_SECRET }}
@@ -35,12 +35,12 @@ jobs:
         '@
         
         $content | Set-Content -Path ./.envvars
-        docker run --env-file ./.envvars --name pytest test
+        docker run --env-file ./.envvars --name pytestcontainer pytestimage
         echo "Tests completed"
         if($LASTEXITCODE -eq 1){
           throw "Unit tests failed"
         }
-        docker cp pytest:/var/task/coverage.xml ./coverage.xml
+        docker cp pytestcontainer:/app/coverage.xml ./coverage.xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

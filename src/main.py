@@ -1,11 +1,7 @@
-from typed_settings import settings
 from src import (
         DataclassConversions,
-        HTMLCorrections as HTML_Corrections,
-        ExitHandler,
         ConfigurationHandler as configuration_handler,
         S3Utilities as s3b,
-        SeleniumUtilities,
         SubmissionsModels as dtc,
         WebRequestMethods,
         ParsingUtilities,
@@ -13,20 +9,18 @@ from src import (
         StringManipulations,
         PostHistory
 )
-import typing, logging.config, html, os
-import html2text as htt
-from bs4 import BeautifulSoup
+import typing, logging, os
 import dpath.util as dpu
-from selenium import webdriver
 
 
 
-def fetch_and_parse_forum_pages_and_return_latest_posts_for_all_sources(forums_url_list: typing.List[str], browser: webdriver.Chrome) -> dtc.SubmissionModelsForAllForumSources:
+def fetch_and_parse_forum_pages_and_return_latest_posts_for_all_sources(forums_url_list: typing.List[str]) -> dtc.SubmissionModelsForAllForumSources:
     newest_posts_on_warframe_forum = dtc.SubmissionModelsForAllForumSources()
     for forum_url in forums_url_list:
-        page_source = WebRequestMethods.browser_fetch_updated_forum_page_source(forum_url, browser)
+        page_source = WebRequestMethods.get_response_from_generic_url(forum_url)
+        print(page_source.text)
         latest_forum_post: dtc.IndividualSubmissionModel = ParsingUtilities.get_latest_submission_dataclass_in_forum_page(
-                page_source)
+                page_source.text)
 
         newest_posts_on_warframe_forum.forum_sources.append(dtc.SubmissionModelsForSingleForumSource(forum_url, [latest_forum_post]))
     return newest_posts_on_warframe_forum
@@ -38,16 +32,12 @@ def main():
     
     praw_settings, s3_settings, general_settings = configuration_handler.init_settings(os.getenv('ConfigurationName'))
 
-    browser: webdriver.Chrome = SeleniumUtilities.start_chrome_browser()
     praw_utilities : pru.PrawUtilities = pru.PrawUtilities(praw_settings)
     s3_utilities: s3b.S3Utilities = s3b.S3Utilities(s3_settings)
     post_history: dtc.SubmissionModelsForAllForumSources = s3_utilities.fetch_post_history_from_bucket()
 
-    Exit_Handler = ExitHandler.ExitHandlerClass(browser, post_history)
-
     newest_posts_on_warframe_forum: dtc.SubmissionModelsForAllForumSources = fetch_and_parse_forum_pages_and_return_latest_posts_for_all_sources(
             general_settings.forum_urls_list,
-            browser
         )
 
     for forum_source in newest_posts_on_warframe_forum.forum_sources:

@@ -1,6 +1,7 @@
-FROM umihico/aws-lambda-selenium-python:3.9.14-selenium4.4.3-chrome106.0.5249.0 as base
+FROM python:3.9.14-slim as base
 
-RUN yum install -yq git
+WORKDIR /app
+RUN apt-get update && apt-get install -y git
 
 RUN python -m pip install --upgrade pip
 
@@ -20,7 +21,7 @@ RUN pip install -r requirements-dev.txt --force-reinstall && \
 
 FROM base as release
 COPY . ./
-RUN echo '127.0.0.1 localhost loopback' >> /etc/hosts
+ENTRYPOINT [ "python","-m", "awslambdaric" ]
 CMD [ "app.lambda_handler" ]
 
 FROM test-deps as test

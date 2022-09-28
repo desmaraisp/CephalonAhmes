@@ -2,11 +2,7 @@ praw==7.6.0
 beautifulsoup4==4.11.1
 boto3==1.24.82
 requests==2.28.1
-selenium==4.4.3
 dpath==2.0.6
 dataclass-wizard==0.22.1
 git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b891b24a#egg=html2text
-retry==0.9.2
-func-timeout==4.3.5
 typed-settings==1.1.0
-awslambdaric==2.0.4
