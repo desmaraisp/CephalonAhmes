@@ -48,14 +48,9 @@ Resources:
           ConfigurationName: 
             Ref: ConfigurationName
       Policies:
-        - Statement:
-                - Sid: CephalonAhmesBucketFullAccess
-                  Effect: Allow
-                  Action:
-                  - s3:PutObject
-                  - s3:GetObject
-                  - s3:ListBucket
-                  Resource: !GetAtt 'CephalonAhmesBucket.Arn'
+        - S3FullAccessPolicy:
+            BucketName: cephalonahmesbucket
+
       Events:
         CephalonAhmesSchedule:
           Type: Schedule
