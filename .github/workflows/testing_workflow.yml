@@ -15,6 +15,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: docker-practice/actions-setup-docker@master
+    - uses: aws-actions/setup-sam@v2
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
     
     - name: Run Tests
       shell: pwsh
@@ -46,10 +52,6 @@ jobs:
     - name: Push to AWS
       if: ${{ github.event_name == 'push' }}
       shell: pwsh
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: 'us-east-1'
       run: |
         echo "Deploying"
         aws cloudformation deploy --stack-name CephalonAhmesPipelineResources  --template-file SAMDeploy/SAMPreliminaryDeploy.yml
