@@ -14,7 +14,7 @@ Parameters:
     Type: String
   ConfigurationName:
     Type: String
-    Default: AWS::NoValue
+    Default: ""
 
 
 Resources:
@@ -34,7 +34,7 @@ Resources:
       PackageType: Image
       FunctionName: CephalonAhmesFunction
       Timeout: 900
-      MemorySize: 128
+      MemorySize: 256
       Environment : 
         Variables: 
           CEPHALONAHMES_PRAW_CLIENT_ID:
