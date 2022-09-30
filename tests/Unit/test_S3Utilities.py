@@ -2,7 +2,7 @@ from src import (
     S3Utilities,
     ConfigurationHandler as cgh,
 )
-import boto3, pytest
+import boto3
 from moto import mock_s3
 from src.Models import SubmissionModel, SubmissionListForMultipleSources, SubmissionsListForSingleSource
 from datetime import datetime

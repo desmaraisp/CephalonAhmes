@@ -1,5 +1,4 @@
 from src import Models
-from datetime import datetime
 
 def test_add_submission():
     model = Models.SubmissionListForMultipleSources(

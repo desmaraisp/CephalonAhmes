@@ -1,10 +1,12 @@
 import logging, json
+from typing import Optional
 
 class FormatterJSON(logging.Formatter):
-    def __init__(self, time_format: str = "%Y-%m-%dT%H:%M:%S", msec_format: str = "%s.%03dZ"):
+    def __init__(self, time_format: str = "%Y-%m-%dT%H:%M:%S", msec_format: str = "%s.%03dZ", AWS_Request_ID: Optional[str] = None):
         self.default_time_format = time_format
         self.default_msec_format = msec_format
         self.datefmt = None
+        self.AWS_Request_ID: Optional[str] = AWS_Request_ID
 
     
     def format(self, record):
@@ -13,11 +15,13 @@ class FormatterJSON(logging.Formatter):
             'Level': record.levelname,
             'Timestamp': '%(asctime)s.%(msecs)dZ' % dict(asctime=record.asctime, msecs=record.msecs),
             'Message': record.getMessage(),
-            'Module': record.module,
-            'Extra Data': record.__dict__.get('data', {}),
+            'Module': record.module
         }
-        if getattr(record, 'aws_request_id', None):
-            j['AWS Request ID']= getattr(record, 'aws_request_id'),
+        if self.AWS_Request_ID:
+            j['AWS Request ID']= self.AWS_Request_ID,
+        
+        if record.__dict__.get('data'):
+            j['Extra Data'] = record.__dict__.get('data')
         
         if record.exc_info:
             if not record.exc_text:
@@ -33,10 +37,10 @@ class FormatterJSON(logging.Formatter):
     
 
 
-def ConfigureLogging():
+def ConfigureLogging(AWS_Request_ID: Optional[str] = None):
     logging.getLogger().handlers.clear()
 
-    formatter = FormatterJSON()
+    formatter = FormatterJSON(AWS_Request_ID=AWS_Request_ID)
     JSONHandler = logging.StreamHandler()
     JSONHandler.setFormatter(formatter)
     

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import typed_settings as ts
 
 def ThrowValidationException(message: str):
@@ -54,7 +54,7 @@ class S3Settings:
     )
 
 @ts.settings()
-class RSSFeedURL:
+class RSSFeedInformation:
     XMLUrl: str = ts.option(
         validator= NotEmptyValue, 
         default=""
@@ -63,7 +63,7 @@ class RSSFeedURL:
 
 @ts.settings()
 class GeneralSettings:
-    forum_urls_list: List[RSSFeedURL] = ts.option(
+    forum_urls_list: List[RSSFeedInformation] = ts.option(
         validator= [ NotEmptyValue, NotEmptyItemsInList],
         default=[]
     )
@@ -72,7 +72,7 @@ class GeneralSettings:
     )
 
 
-def init_settings(current_configuration_name: str) -> Tuple[PrawSettings, S3Settings, GeneralSettings]:
+def init_settings(current_configuration_name: Optional[str]) -> Tuple[PrawSettings, S3Settings, GeneralSettings]:
     config_files = ["settings.toml"]
     if(current_configuration_name):
         config_files.append(f"settings.{current_configuration_name}.toml")
