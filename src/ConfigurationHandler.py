@@ -73,8 +73,8 @@ class GeneralSettings:
 
 
 def init_settings(current_configuration_name: Optional[str]) -> Tuple[PrawSettings, S3Settings, GeneralSettings]:
-    config_files = ["settings.toml"]
-    if(current_configuration_name):
+    config_files = ["settings.base.toml"]
+    if(current_configuration_name and current_configuration_name!= 'base'):
         config_files.append(f"settings.{current_configuration_name}.toml")
 
     praw_settings: PrawSettings = ts.load(

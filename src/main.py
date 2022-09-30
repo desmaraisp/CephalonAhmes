@@ -11,9 +11,17 @@ from src import (
 )
 import logging, os
 
-
 def main(AWS_Request_ID: Optional[str] = None):
+    try:
+        _main(AWS_Request_ID)
+    except Exception as e:
+        logging.getLogger().exception(e)
+        raise
+
+
+def _main(AWS_Request_ID: Optional[str] = None):
     ConfigureLogging.ConfigureLogging(AWS_Request_ID)
+
     logging.getLogger("CephalonAhmes").info("Starting application")
     
     praw_settings, s3_settings, general_settings = cfg.init_settings(os.getenv('ConfigurationName', None))

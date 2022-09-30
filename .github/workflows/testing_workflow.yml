@@ -60,4 +60,4 @@ jobs:
 
         sam build --template-file ./SAMDeploy/SAMTemplate.yaml
         sam deploy --config-file ./SAMDeploy/samconfig.toml --image-repositories "CephalonAhmesFunction=$RepositoryUri" `
-          --parameter-overrides CEPHALONAHMESPRAWCLIENTID=${{ secrets.PRAW_CLIENT_ID }} CEPHALONAHMESPRAWCLIENTSECRET=${{ secrets.PRAW_CLIENT_SECRET }} CEPHALONAHMESPRAWPASSWORD=${{ secrets.PRAW_PASSWORD }} CEPHALONAHMESPRAWUSERNAME=${{ secrets.PRAW_USERNAME }}
+          --parameter-overrides CEPHALONAHMESPRAWCLIENTID=${{ secrets.PRAW_CLIENT_ID }} CEPHALONAHMESPRAWCLIENTSECRET=${{ secrets.PRAW_CLIENT_SECRET }} CEPHALONAHMESPRAWPASSWORD=${{ secrets.PRAW_PASSWORD }} CEPHALONAHMESPRAWUSERNAME=${{ secrets.PRAW_USERNAME }} ConfigurationName=base
