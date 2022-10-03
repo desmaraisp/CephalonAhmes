@@ -49,7 +49,7 @@ class PrawUtilities:
                     submission_title,
                     subreddit
                 )
-            if(has_been_posted): return subreddit
+            if(not has_been_posted): return subreddit
         
         return self.settings.SubredditDestinationFallbacks[-1]
 

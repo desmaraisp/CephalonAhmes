@@ -28,16 +28,16 @@ class mocked_Reddit_Object:
 def mock_praw(mocker: pytest_mock.MockerFixture):
     mock_function = mocker.patch.object(pru.PrawUtilities, 'start_reddit_session')
     mock_function.return_value = mocked_Reddit_Object({
-        "sub1": mocked_subreddit_object(
+        "primary": mocked_subreddit_object(
             return_value= [
                         mocked_submission_class(title="test"),
                         mocked_submission_class(title="test2")
                     ]
         ),
-        "sub2": mocked_subreddit_object(
+        "fallback": mocked_subreddit_object(
             return_value= [
-                        mocked_submission_class(title="test3"),
-                        mocked_submission_class(title="test4")
+                        mocked_submission_class(title="test2"),
+                        mocked_submission_class(title="test3")
                     ]
         )
     })
@@ -51,10 +51,10 @@ def test_check_if_post_has_already_been_posted_to_subreddit(mock_praw, mocker):
         cgf.PrawSettings()
     )
     
-    result: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test", "sub1")
-    result2: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test2", "sub1")
-    result3: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test3","sub1")
-    result4: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test3","sub2")
+    result: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test", "primary")
+    result2: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test2", "primary")
+    result3: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test3","primary")
+    result4: bool = praw_utilities.check_if_post_has_already_been_posted_to_subreddit("test3","fallback")
     assert(result)
     assert(result2)
     assert(not result3)
@@ -66,16 +66,16 @@ def test_get_destination_subreddit_from_configuration(mock_praw, mocker):
     
     praw_utilities: pru.PrawUtilities = pru.PrawUtilities(
         cgf.PrawSettings(
-            SubredditDestinationFallbacks=["sub1", "sub2"]
+            SubredditDestinationFallbacks=["primary", "fallback"]
         )
     )
     
     result: str = praw_utilities.get_destination_subreddit_from_configuration("test")
-    assert(result=="sub1")
+    assert(result=="fallback")
     result: str = praw_utilities.get_destination_subreddit_from_configuration("test3")
-    assert(result=="sub2")
-    result: str = praw_utilities.get_destination_subreddit_from_configuration("test5")
-    assert(result=="sub2")
+    assert(result=="primary")
+    result: str = praw_utilities.get_destination_subreddit_from_configuration("test2")
+    assert(result=="fallback")
 
 
 def test_make_submission_to_targeted_subreddit():
