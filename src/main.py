@@ -9,7 +9,7 @@ from src import (
         StringManipulations,
         ConfigureLogging
 )
-import logging, os
+import logging, os, copy
 
 def main(AWS_Request_ID: Optional[str] = None):
     try:
@@ -29,6 +29,7 @@ def _main(AWS_Request_ID: Optional[str] = None):
     praw_utilities : pru.PrawUtilities = pru.PrawUtilities(praw_settings)
     s3_utilities: s3b.S3Utilities = s3b.S3Utilities(s3_settings)
     post_history: dtc.SubmissionListForMultipleSources = s3_utilities.fetch_post_history_from_bucket()
+    initial_post_history = copy.deepcopy(post_history)
     
     rss_feed_information: cfg.RSSFeedInformation
     for rss_feed_information in general_settings.forum_urls_list:
@@ -64,7 +65,8 @@ def _main(AWS_Request_ID: Optional[str] = None):
         logging.getLogger("CephalonAhmes").info(f"Submitted post with title {submission_model.title}")
         post_history.add_submission(submission_model, rss_feed_information.XMLUrl)
     
-    s3_utilities.push_post_history_to_bucket(post_history)
+    if(post_history != initial_post_history):
+        s3_utilities.push_post_history_to_bucket(post_history)
 
 
 if __name__ == "__main__":
