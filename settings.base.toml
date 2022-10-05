@@ -22,11 +22,11 @@ footer_message = """
 
 
 [[GeneralSettings.forum_urls_list]]
-RefreshUrl= "https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+RefreshUrl= "https://forums.warframe.com/forum/3-pc-update-notes/?sortby=views&sortdirection=desc"
 XMLUrl="https://forums.warframe.com/forum/3-pc-update-notes.xml"
 [[GeneralSettings.forum_urls_list]]
-RefreshUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+RefreshUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=views&sortdirection=desc"
 XMLUrl="https://forums.warframe.com/forum/123-developer-workshop-update-notes.xml"
 [[GeneralSettings.forum_urls_list]]
-RefreshUrl="https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc&sortby=posts&sortdirection=desc"
+RefreshUrl="https://forums.warframe.com/forum/170-announcements-events/?sortby=views&sortdirection=desc"
 XMLUrl="https://forums.warframe.com/forum/170-announcements-events.xml"
