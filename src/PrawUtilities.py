@@ -1,3 +1,4 @@
+from typing import Union
 import praw, praw.models
 from src import (
         ConfigurationHandler as cgf,
@@ -30,7 +31,7 @@ class PrawUtilities:
         return title in newest_submission_titles_in_subreddit
 
 
-    def get_subreddit_flair_id(self, subreddit_name):
+    def get_subreddit_flair_id(self, subreddit_name: str) -> Union[str, None]:
         flair_template = list(self.start_reddit_session().subreddit(
                 subreddit_name).flair.link_templates)
         return next(

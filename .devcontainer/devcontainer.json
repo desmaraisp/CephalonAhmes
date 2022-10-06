@@ -34,7 +34,6 @@
 	},
 	"features": {
 		"docker-from-docker": "20.10",
-		"aws-cli": "latest",
-		"git": "latest"
+		"aws-cli": "latest"
 	}
 }

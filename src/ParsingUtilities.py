@@ -27,7 +27,7 @@ def get_date_from_node(node: etree._Element) -> datetime:
     pubdate = node.find('./pubDate').text
     return datetime.strptime(pubdate, '%a, %d %b %Y %H:%M:%S %z')
 
-def transform_contents_to_markdown(contents: str, url: str, footer:str):
+def transform_contents_to_markdown(contents: str, url: str, footer:str) -> str:
     contents = StringManipulations.remove_all_zero_width_spaces(contents)
 
     soup = BeautifulSoup(contents, 'html.parser')

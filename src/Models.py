@@ -29,7 +29,7 @@ class SubmissionListForMultipleSources(JSONWizard):
     forum_sources: typing.List[SubmissionsListForSingleSource] = field(default_factory=list)
 
 
-    def add_submission(self, submission_model_to_add : SubmissionModel, rss_url: str):
+    def add_submission(self, submission_model_to_add : SubmissionModel, rss_url: str) -> None:
         current_forum_source_in_history = next((i for i in self.forum_sources if i.rss_source_url == rss_url), None)
 
         if(not current_forum_source_in_history):

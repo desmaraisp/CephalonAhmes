@@ -1,13 +1,14 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any
+import attr
 import typed_settings as ts
 
-def ThrowValidationException(message: str):
+def ThrowValidationException(message: str) -> None:
     raise ValueError(message)
 
-def NotEmptyValue(instance, attribute, value):
+def NotEmptyValue(instance: Any, attribute: attr.Attribute, value: Any) -> None:
     if(not value):  ThrowValidationException(f"{attribute.name} must not be empty")
 
-def NotEmptyItemsInList(instance, attribute, value: List):
+def NotEmptyItemsInList(instance: Any, attribute: attr.Attribute, value: List[Any]) -> None:
     if not all(value):
         ThrowValidationException(f"All items in {attribute.name} must not be empty")
 
@@ -54,16 +55,8 @@ class S3Settings:
     )
 
 @ts.settings()
-class RSSFeedInformation:
-    XMLUrl: str = ts.option(
-        validator= NotEmptyValue, 
-        default=""
-    )
-    RefreshUrl: str = ts.option(default= None)
-
-@ts.settings()
 class GeneralSettings:
-    forum_urls_list: List[RSSFeedInformation] = ts.option(
+    XML_Urls: List[str] = ts.option(
         validator= [ NotEmptyValue, NotEmptyItemsInList],
         default=[]
     )

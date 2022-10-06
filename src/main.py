@@ -11,7 +11,7 @@ from src import (
 )
 import logging, os, copy
 
-def main(AWS_Request_ID: Optional[str] = None):
+def main(AWS_Request_ID: Optional[str] = None) -> None:
     try:
         _main(AWS_Request_ID)
     except Exception as e:
@@ -19,7 +19,7 @@ def main(AWS_Request_ID: Optional[str] = None):
         raise
 
 
-def _main(AWS_Request_ID: Optional[str] = None):
+def _main(AWS_Request_ID: Optional[str] = None) -> None:
     ConfigureLogging.ConfigureLogging(AWS_Request_ID)
 
     logging.getLogger("CephalonAhmes").info("Starting application")
@@ -31,27 +31,28 @@ def _main(AWS_Request_ID: Optional[str] = None):
     post_history: dtc.SubmissionListForMultipleSources = s3_utilities.fetch_post_history_from_bucket()
     initial_post_history = copy.deepcopy(post_history)
     
-    rss_feed_information: cfg.RSSFeedInformation
-    for rss_feed_information in general_settings.forum_urls_list:
-        if rss_feed_information.RefreshUrl:
-            _ = WebRequestMethods.get_response_from_generic_url(rss_feed_information.RefreshUrl)
+    for XMLUrl in general_settings.XML_Urls:
+        response = WebRequestMethods.get_response_from_generic_url(XMLUrl)
         
-        rss_feed_content = WebRequestMethods.get_response_from_generic_url(rss_feed_information.XMLUrl).text
+        if(response.headers.get('expires')):
+            logging.warn(f"Getting cached data from website. Expires at {response.headers['expires']}")
+        
+        rss_feed_content = response.text
         submission_model = ParsingUtilities.GetLastItemInformation(rss_feed_content)
         
-        post_history_for_current_source_rss_feed = next((i for i in post_history.forum_sources if i.rss_source_url == rss_feed_information.XMLUrl), None)
+        post_history_for_current_source_rss_feed = next((i for i in post_history.forum_sources if i.rss_source_url == XMLUrl), None)
         
         if post_history_for_current_source_rss_feed and len([i for i in post_history_for_current_source_rss_feed.submissions_list if i.title == submission_model.title or i.guid==submission_model.guid]) == 1:
             continue
         
         submission_model.title, SubmissionValidTitle = StringManipulations.Check_Title_Validity(
             submission_model.title,
-            rss_feed_information.XMLUrl
+            XMLUrl
         )
         
         if not SubmissionValidTitle:
             logging.getLogger("CephalonAhmes").info("Submission Ignored with title {}.".format(submission_model.title))
-            post_history.add_submission(submission_model, rss_feed_information.XMLUrl)
+            post_history.add_submission(submission_model, XMLUrl)
             
         
         submission_contents_markdown = ParsingUtilities.transform_contents_to_markdown(
@@ -63,7 +64,7 @@ def _main(AWS_Request_ID: Optional[str] = None):
         praw_utilities.make_submission_to_targeted_subreddit(
             submission_contents_markdown, submission_model.title)
         logging.getLogger("CephalonAhmes").info(f"Submitted post with title {submission_model.title}")
-        post_history.add_submission(submission_model, rss_feed_information.XMLUrl)
+        post_history.add_submission(submission_model, XMLUrl)
     
     if(post_history != initial_post_history):
         s3_utilities.push_post_history_to_bucket(post_history)

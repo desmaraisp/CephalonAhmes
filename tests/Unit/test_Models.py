@@ -1,6 +1,6 @@
 from src import Models
 
-def test_add_submission():
+def test_add_submission() -> None:
     model = Models.SubmissionListForMultipleSources(
         forum_sources=[
             Models.SubmissionsListForSingleSource(

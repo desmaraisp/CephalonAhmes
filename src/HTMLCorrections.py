@@ -1,25 +1,30 @@
 from bs4 import (
         element as bs4elem,
-        BeautifulSoup
+        BeautifulSoup,
         )
 import re
 
 def decompose_all_blockquote_headers(soup: BeautifulSoup) -> None:
+    block: bs4elem.Tag
     for block in soup.find_all("blockquote"):
         block.find("div").decompose()
 
 
 def decompose_all_spoiler_headers(soup: BeautifulSoup) -> None:
+    spoilerheader: bs4elem.Tag
     for spoilerheader in soup.find_all("div",{"class":"ipsSpoiler_header"}):
         spoilerheader.decompose()
 
 
-def decompose_all_edited_on_footers(soup: BeautifulSoup):
+def decompose_all_edited_on_footers(soup: BeautifulSoup) -> None:
+    footer: bs4elem.Tag
     for footer in soup.find_all('span',{"class":'ipsType_reset ipsType_medium ipsType_light'}):
         footer.decompose()
 
 
-def strip_image_links_to_avoid_double_links(soup: BeautifulSoup):
+def strip_image_links_to_avoid_double_links(soup: BeautifulSoup) -> None:
+    image: bs4elem.Tag
+    link: bs4elem.Tag
     for image in soup.find_all("img"):
         for link in image.find_parents('a'):
             image_source=link["href"]
@@ -27,15 +32,16 @@ def strip_image_links_to_avoid_double_links(soup: BeautifulSoup):
             image["src"]=image_source
 
 
-def convert_mp4_to_link(soup: BeautifulSoup):
+def convert_mp4_to_link(soup: BeautifulSoup) -> None:
+    source_element: bs4elem.Tag
     for source_element in soup.find_all("source",{"type":"video/mp4"}):
         video_source=source_element["src"]
         source_element.parent.find('a')['href']=video_source
 
 
 
-def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string) -> str:
-    def my_replace(match: re.Match):
+def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string: str) -> str:
+    def my_replace(match: re.Match) -> str:
         return match.group().replace("\t","").replace(" ","")
 
     pattern = r'^\s*(?=\S)|(?<=\S)\s*$' #all trailing or leading whitespaces
@@ -43,7 +49,7 @@ def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string) -> str:
     return re.sub(pattern, my_replace, string)
 
 
-def eliminate_and_propagate_tag(soup: BeautifulSoup, tag_name :str):
+def eliminate_and_propagate_tag(soup: BeautifulSoup, tag_name :str) -> None:
     tag: bs4elem.Tag
     for tag in soup.find_all(tag_name):
         
@@ -56,12 +62,12 @@ def eliminate_and_propagate_tag(soup: BeautifulSoup, tag_name :str):
         tag.name="span"
 
 
-def propagate_elements_to_children(soup: BeautifulSoup):
+def propagate_elements_to_children(soup: BeautifulSoup) -> None:
     eliminate_and_propagate_tag(soup, 'em')
     eliminate_and_propagate_tag(soup, 'strong')
 
 
-def convert_iframes_to_link(soup: BeautifulSoup):
+def convert_iframes_to_link(soup: BeautifulSoup) -> None:
     tag: bs4elem.Tag
     for tag in soup.find_all("iframe"):
         newtag = soup.new_tag("a")
@@ -75,8 +81,7 @@ def convert_iframes_to_link(soup: BeautifulSoup):
         tag.decompose()
 
 
-def add_spoiler_tag_to_html_element(element, soup: BeautifulSoup):
-
+def add_spoiler_tag_to_html_element(element: bs4elem.Tag, soup: BeautifulSoup) -> None:
     element_has_string_attribute = False
     for child in element.children:
         if not (str(type(child))=="<class 'bs4.element.NavigableString'>"):
@@ -89,7 +94,7 @@ def add_spoiler_tag_to_html_element(element, soup: BeautifulSoup):
             element.insert(0, ">!")
 
 
-def Process_Spoiler(soup: BeautifulSoup):
+def Process_Spoiler(soup: BeautifulSoup) -> None:
     spoiler: bs4elem.Tag
     for spoiler in soup.find_all("div",{"class":"ipsSpoiler"}):
         
@@ -112,16 +117,16 @@ def Process_Spoiler(soup: BeautifulSoup):
             newtag.string = ">!"
             element.wrap(newtag)
 
-def decompose_all_table_cell_children(table_cell : bs4elem.Tag):
+def decompose_all_table_cell_children(table_cell : bs4elem.Tag) -> None:
     obj: bs4elem.Tag
     for obj in table_cell.find_all(recursive=True):
         obj.unwrap()
 
-def replace_empty_table_cell_content_with_dash(table_cell : bs4elem.Tag):
+def replace_empty_table_cell_content_with_dash(table_cell : bs4elem.Tag) -> None:
     if not table_cell.text.strip():
         table_cell.string="-"
 
-def process_tables(soup: BeautifulSoup):
+def process_tables(soup: BeautifulSoup) -> None:
     tag: bs4elem.Tag
     for tag in soup.find_all('table'):
         for table_cell in tag.findChildren('td'):
@@ -132,7 +137,7 @@ def process_tables(soup: BeautifulSoup):
 
 
 
-def process_html_tag(soup: BeautifulSoup):
+def process_html_tag(soup: BeautifulSoup) -> None:
     decompose_all_blockquote_headers(soup)
     decompose_all_spoiler_headers(soup)
     decompose_all_edited_on_footers(soup)

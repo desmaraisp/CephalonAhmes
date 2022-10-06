@@ -1,7 +1,7 @@
-from typing import Tuple
+from typing import List, Tuple
 import re
 
-def split_string_on_last_separator_before_cutoff_length(content, limit, separators_ordered_by_priority=['\n']) -> Tuple[str, str]:
+def split_string_on_last_separator_before_cutoff_length(content: str, limit: int, separators_ordered_by_priority: List[str]=['\n']) -> Tuple[str, str]:
     if len(content) <= limit:
         return content, ''
 
@@ -22,11 +22,11 @@ def split_string_on_last_separator_before_cutoff_length(content, limit, separato
 
 
 
-def Check_Title_Validity(title, ForumPage) -> Tuple[str, bool]:
+def Check_Title_Validity(title: str, ForumPage: str) -> Tuple[str, bool]:
     title = title.replace("PSA: ", "").strip()
 
     return title, not ("+" in title and ForumPage == "https://forums.warframe.com/forum/3-pc-update-notes.xml")
 
-def remove_all_zero_width_spaces(string):
+def remove_all_zero_width_spaces(string: str) -> str:
     return string.replace(
             u"\xa0", "")

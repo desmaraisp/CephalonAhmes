@@ -1,6 +1,6 @@
 from src import StringManipulations
 
-def test_Check_Title_Validity():
+def test_Check_Title_Validity() -> None:
     title = "PSA: TestTitle"
     Forum = "Test"
 
@@ -16,15 +16,15 @@ def test_Check_Title_Validity():
 
 
 
-def test_split_string_on_last_separator_before_cutoff_length():
+def test_split_string_on_last_separator_before_cutoff_length() -> None:
     content = "TestParagraph1"
-    result = StringManipulations.split_string_on_last_separator_before_cutoff_length(content, 15, ",")
+    result = StringManipulations.split_string_on_last_separator_before_cutoff_length(content, 15, [","])
 
     assert result == ("TestParagraph1","")
 
 
     content = "TestParagraph1,TestParagraph2,TestParagraph3"
-    result = StringManipulations.split_string_on_last_separator_before_cutoff_length(content, 15, ",")
+    result = StringManipulations.split_string_on_last_separator_before_cutoff_length(content, 15, [","])
 
     assert result == ("TestParagraph1","TestParagraph2,TestParagraph3")
 

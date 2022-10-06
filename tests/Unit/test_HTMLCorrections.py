@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import html
 
 
-def test_decompose_all_blockquote_headers():
+def test_decompose_all_blockquote_headers() -> None:
     InitialString = """<blockquote><div>HeaderContent</div><div>StringContent</div></blockquote>"""
 
     DesiredResult = """<blockquote><div>StringContent</div></blockquote>"""
@@ -14,7 +14,7 @@ def test_decompose_all_blockquote_headers():
 
     assert tag.decode_contents()== DesiredResult
 
-def test_strip_tabs_and_spaces_but_keep_newlines():
+def test_strip_tabs_and_spaces_but_keep_newlines() -> None:
     InitialString = """  
 			  
 	 
@@ -41,7 +41,7 @@ test1 test2
     assert Result== DesiredResult
 
 
-def test_strip_Spoiler_Header():
+def test_strip_Spoiler_Header() -> None:
     InitialString = """<div class="ipsSpoiler"><div class="ipsSpoiler_header">HeaderContents</div><div class="ipsSpoiler_contents">SpoilerContents</div></div>"""
     tag = BeautifulSoup(InitialString, 'html.parser')
 
@@ -49,7 +49,7 @@ def test_strip_Spoiler_Header():
 
     assert tag.decode_contents()=="""<div class="ipsSpoiler"><div class="ipsSpoiler_contents">SpoilerContents</div></div>"""
 
-def test_strip_Edited_Footer():
+def test_strip_Edited_Footer() -> None:
     InitialString = """<span class="ipsType_reset ipsType_medium ipsType_light"><strong>Edited by TestUser</strong></span>"""
     tag = BeautifulSoup(InitialString, 'html.parser')
 
@@ -57,7 +57,7 @@ def test_strip_Edited_Footer():
 
     assert tag.decode_contents()==""
 
-def test_strip_image_links_to_avoid_double_links():
+def test_strip_image_links_to_avoid_double_links() -> None:
     InitialString = """<a href="hreflink"><img src="imgsource"></a>"""
     tag = BeautifulSoup(InitialString, 'html.parser')
 
@@ -65,7 +65,7 @@ def test_strip_image_links_to_avoid_double_links():
 
     assert tag.decode_contents()=="""<a href><img src="hreflink"/></a>"""
 
-def test_strip_image_links_to_avoid_double_links2():
+def test_strip_image_links_to_avoid_double_links2() -> None:
     InitialString = """<a href="hreflink"><div><img src="imgsource"></div></a>"""
     tag = BeautifulSoup(InitialString, 'html.parser')
 
@@ -73,7 +73,7 @@ def test_strip_image_links_to_avoid_double_links2():
 
     assert tag.decode_contents()=="""<a href><div><img src="hreflink"/></div></a>"""
 
-def test_convert_mp4_to_link():
+def test_convert_mp4_to_link() -> None:
     InitialString = """<div><a href="SomeRandomHref"/><source type="video/mp4" src="srclink"/></div>"""
     tag = BeautifulSoup(InitialString, 'html.parser')
 
@@ -82,7 +82,7 @@ def test_convert_mp4_to_link():
     assert tag.decode_contents()=="""<div><a href="srclink"></a><source src="srclink" type="video/mp4"/></div>"""
 
 
-def test_eliminate_and_propagate_tag():
+def test_eliminate_and_propagate_tag() -> None:
     InitialString = """<div><strong>String1<a>String2</a>String3</strong><div><strong>String4<a>String5</a></strong></div></div>"""
     soup = BeautifulSoup(InitialString, 'html.parser')
 
@@ -105,7 +105,7 @@ def test_eliminate_and_propagate_tag():
 	""".replace("\t","").replace("\n","")
 
 
-def test_convert_iframes_to_link():
+def test_convert_iframes_to_link() -> None:
     InitialString = """<iframe src="iframesrc" data-embed-src="iframedatasrc"></iframe><iframe src="iframesrc"></iframe>"""
     soup = BeautifulSoup(InitialString, 'html.parser')
 
@@ -113,7 +113,7 @@ def test_convert_iframes_to_link():
 
     assert soup.decode_contents()=="""<a>iframedatasrc</a><a>iframesrc</a>"""
 
-def test_add_spoiler_tag_to_html_element():
+def test_add_spoiler_tag_to_html_element() -> None:
     InitialString = """
 		<span>
 			<div class="ipsSpoiler">test</div>
@@ -132,7 +132,7 @@ def test_add_spoiler_tag_to_html_element():
 	""".replace("\t","").replace("\n","")
 
 
-def test_Process_Spoiler():
+def test_Process_Spoiler() -> None:
     InitialString = """
 		<span>
 			<div class="ipsSpoiler"> String1<strong>String2</strong><br/> String3</div>
@@ -149,7 +149,7 @@ def test_Process_Spoiler():
 		</span>
 	""".replace("\t","").replace("\n","")
 
-def test_Process_Spoiler2():
+def test_Process_Spoiler2() -> None:
     InitialString = """
 		<span>
 			<div class="ipsSpoiler">
@@ -176,7 +176,7 @@ def test_Process_Spoiler2():
 		</span>
 	""".replace("\t","").replace("\n","")
 
-def test_Process_Tables():
+def test_Process_Tables() -> None:
     InitialString = """
 	<table><tbody><tr>
 			<td>

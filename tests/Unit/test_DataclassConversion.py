@@ -4,9 +4,10 @@ from src import (
         Models
 )
 from datetime import datetime
+import typing
 
 @pytest.fixture
-def shared_class_object():
+def shared_class_object() -> Models.SubmissionListForMultipleSources:
     individual_submission_model2 = Models.SubmissionModel(
         contents="contents",
         guid=12,
@@ -43,7 +44,7 @@ def shared_class_object():
     return class_object
 
 @pytest.fixture
-def shared_dict_object():
+def shared_dict_object() -> typing.Dict:
     return {
         "forum_sources": [
                 {
@@ -88,12 +89,12 @@ def shared_dict_object():
     }
 
 
-def test_convert_post_history_model_to_json_bakc_and_forth(shared_dict_object, shared_class_object):
+def test_convert_post_history_model_to_json_bakc_and_forth(shared_dict_object: typing.Dict, shared_class_object: Models.SubmissionListForMultipleSources) -> None:
     assert(shared_dict_object == DataclassConversions.convert_post_history_model_to_json(shared_class_object))
     assert(shared_class_object == DataclassConversions.convert_post_history_json_to_submission_model(shared_dict_object))
 
 
-def test_convert_post_history_json_to_submission_model_negative_test(shared_class_object, shared_dict_object):
+def test_convert_post_history_json_to_submission_model_negative_test(shared_class_object: Models.SubmissionListForMultipleSources, shared_dict_object: typing.Dict) -> None:
     shared_class_object.forum_sources[0].rss_source_url="ChangeValue"
 
     output_object = DataclassConversions.convert_post_history_model_to_json(
@@ -103,8 +104,8 @@ def test_convert_post_history_json_to_submission_model_negative_test(shared_clas
     
     
     
-def test_convert_post_history_json_to_submission_model_empty_string():
-    input_object = {}
+def test_convert_post_history_json_to_submission_model_empty_string() -> None:
+    input_object: typing.Dict = {}
 
     output_object = DataclassConversions.convert_post_history_json_to_submission_model(input_object)
 

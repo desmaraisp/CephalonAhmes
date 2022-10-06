@@ -12,6 +12,8 @@ def get_response_from_generic_url(url: str, MaxRetries: int = 5) -> requests.Res
 
     session.mount('http://', HTTPAdapter(max_retries=retries))
     session.mount('https://', HTTPAdapter(max_retries=retries))
+    session.cookies.set("gid", value="59aec12f3ade7fd1f103decf", domain="forums.warframe.com", path="/") # type: ignore
+    session.cookies.set("ips4_noCache", value="1", domain="forums.warframe.com", path="/") # type: ignore
     
     try:
         return session.get(url, timeout=20)

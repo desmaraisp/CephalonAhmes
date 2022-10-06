@@ -5,6 +5,7 @@ from src import (
     Models as models,
     DataclassConversions
 )
+import mypy_boto3_s3.service_resource as s3_stubs
 
 class S3Utilities:
     settings: cgh.S3Settings
@@ -13,10 +14,10 @@ class S3Utilities:
         self.settings = settings
 
 
-    def get_cloudcube_file_object(self, filename: str):
+    def get_cloudcube_file_object(self, filename: str) -> s3_stubs.Object:
         session_cloudcube = boto3.Session()
-        s3 = session_cloudcube.resource('s3')
-
+        s3: s3_stubs.S3ServiceResource = session_cloudcube.resource('s3')
+        
         return s3.Object(self.settings.S3_BucketName,filename)
 
 
@@ -41,7 +42,7 @@ class S3Utilities:
         )
         return DataclassConversions.convert_post_history_json_to_submission_model(PostHistory_json)
 
-    def push_post_history_to_bucket(self, post_history: models.SubmissionListForMultipleSources):
+    def push_post_history_to_bucket(self, post_history: models.SubmissionListForMultipleSources) -> None:
         post_history_json : dict = DataclassConversions.convert_post_history_model_to_json(post_history)
 
         self.get_cloudcube_file_object(self.settings.PostHistoryFullFileName).put(

@@ -15,11 +15,7 @@ S3_BucketName = "cephalonahmesbucket"
 
 [GeneralSettings]
 footer_message = "footer"
-
-
-[[GeneralSettings.forum_urls_list]]
-RefreshUrl= "test_url"
-XMLUrl="test-xml"
-[[GeneralSettings.forum_urls_list]]
-RefreshUrl="test-url2"
-XMLUrl="test-xml2"
+XML_Urls=[
+	"test-xml",
+	"test-xml2",
+]

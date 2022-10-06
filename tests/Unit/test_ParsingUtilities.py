@@ -2,12 +2,12 @@ import src.ParsingUtilities
 from lxml import etree
 from datetime import datetime, timezone, timedelta
 
-def test_get_date_from_node():
+def test_get_date_from_node() -> None:
     root = etree.fromstring("<root><pubDate>Thu, 29 Sep 2022 13:02:03 -0400</pubDate></root>")
     assert(src.ParsingUtilities.get_date_from_node(root) == datetime(year=2022, month=9, day=29, hour=13, minute=2, second=3, tzinfo=timezone(timedelta(days=-1, seconds=72000))))
 
 
-def test_GetLastItemInformation():    
+def test_GetLastItemInformation() -> None:
     rss_contents = """
     <rss version="2.0">
         <channel>

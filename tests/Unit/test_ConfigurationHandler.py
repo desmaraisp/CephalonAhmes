@@ -3,7 +3,7 @@ import pytest
 from typed_settings import exceptions
 from src import ConfigurationHandler
 
-def test_load_configuration():
+def test_load_configuration() -> None:
     with MonkeyPatch.context() as mp:
         mp.setenv("CEPHALONAHMES_S3_BUCKETNAME", "ROUGE")
         mp.delenv("CEPHALONAHMES_PRAW_CLIENT_ID", False)
@@ -16,9 +16,9 @@ def test_load_configuration():
     assert(b.PostHistoryFullFileName == "testFile")
     assert(b.S3_BucketName == "ROUGE")
     assert(a.PRAW_CLIENT_ID == "OverrideByEnv")
-    assert(len(c.forum_urls_list) == 2)
+    assert(len(c.XML_Urls) == 2)
 
-def test_load_configuration_invalid_values():
+def test_load_configuration_invalid_values() -> None:
     with MonkeyPatch.context() as mp:
         mp.setenv("CEPHALONAHMES_S3_BUCKETNAME", "")
         with pytest.raises(exceptions.InvalidValueError):
