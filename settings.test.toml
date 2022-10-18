@@ -19,3 +19,20 @@ XML_Urls=[
 	"test-xml",
 	"test-xml2",
 ]
+title_ignore_patterns=[
+	'(?i)(hotfix|update).*\+|\+.*(hotfix|update)'
+]
+
+
+[[GeneralSettings.title_replace]]
+pattern='(?i)^(\[psa\] ?|psa: ?)'
+substitution=''
+
+[[GeneralSettings.title_replace]]
+pattern='second pattern'
+substitution=''
+
+
+[[GeneralSettings.body_replace]]
+pattern='\\xa0'
+substitution=''

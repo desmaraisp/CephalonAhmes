@@ -55,6 +55,12 @@ class S3Settings:
     )
 
 @ts.settings()
+class RegexSubstitutionPair:
+    pattern: str = ""
+    substitution: str = ""
+
+
+@ts.settings()
 class GeneralSettings:
     XML_Urls: List[str] = ts.option(
         validator= [ NotEmptyValue, NotEmptyItemsInList],
@@ -62,6 +68,16 @@ class GeneralSettings:
     )
     footer_message: str = ts.option(
         default=""
+    )
+    title_ignore_patterns: List[str] = ts.option(
+        default=[],
+        validator= NotEmptyItemsInList
+    )
+    body_replace: List[RegexSubstitutionPair] = ts.option(
+        default=[]
+    )
+    title_replace: List[RegexSubstitutionPair] = ts.option(
+        default=[]
     )
 
 
