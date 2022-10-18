@@ -122,7 +122,7 @@ def test_add_spoiler_tag_to_html_element() -> None:
 
     soup = BeautifulSoup(InitialString, 'html.parser')
 
-    htmlc.add_spoiler_tag_to_html_element(soup.span.div, soup)
+    htmlc.add_spoiler_tag_to_html_element(soup.find('div', recursive=True), soup)
 
 
     assert html.unescape(soup.decode_contents())=="""

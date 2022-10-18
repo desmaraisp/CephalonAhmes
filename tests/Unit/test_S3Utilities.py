@@ -7,7 +7,7 @@ from moto import mock_s3
 from src.Models import SubmissionModel, SubmissionListForMultipleSources, SubmissionsListForSingleSource
 from datetime import datetime
 
-def test_fetch_cloudcube_contents_notfound():
+def test_fetch_s3_contents_notfound():
     settings = cgh.S3Settings(
         PostHistoryFullFileName="File.json",
         S3_BucketName="TestBucket"
@@ -19,11 +19,11 @@ def test_fetch_cloudcube_contents_notfound():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
         
-        result = s3Utilities.fetch_cloudcube_contents("File.json", "")
+        result = s3Utilities.fetch_s3_contents("File.json", "")
 
         assert(result=="")
     
-def test_fetch_cloudcube_contents_found():
+def test_fetch_s3_contents_found():
     settings = cgh.S3Settings(
         S3_BucketName="TestBucket",
         PostHistoryFullFileName="File.txt"
@@ -38,7 +38,7 @@ def test_fetch_cloudcube_contents_found():
         object = conn.Object(settings.S3_BucketName, settings.PostHistoryFullFileName)
         object.put(Body=b"BytesContent")
         
-        result = s3Utilities.fetch_cloudcube_contents(settings.PostHistoryFullFileName, "")
+        result = s3Utilities.fetch_s3_contents(settings.PostHistoryFullFileName, "")
 
         assert(result=="BytesContent")
 

@@ -24,3 +24,16 @@ XML_Urls=[
 	"https://forums.warframe.com/forum/123-developer-workshop-update-notes.xml",
 	"https://forums.warframe.com/forum/170-announcements-events.xml"
 ]
+title_ignore_patterns=[
+	'(?i)(hotfix|update).*\+|\+.*(hotfix|update)'
+]
+
+
+[[GeneralSettings.title_replace]]
+pattern='(?i)^(\[psa\] ?|psa: ?)'
+substitution=''
+
+
+[[GeneralSettings.body_replace]]
+pattern='\\xa0'
+substitution=''

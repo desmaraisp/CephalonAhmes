@@ -17,6 +17,8 @@ def test_load_configuration() -> None:
     assert(b.S3_BucketName == "ROUGE")
     assert(a.PRAW_CLIENT_ID == "OverrideByEnv")
     assert(len(c.XML_Urls) == 2)
+    assert(c.title_ignore_patterns == [r'(?i)(hotfix|update).*\+|\+.*(hotfix|update)'])
+    assert(len(c.title_replace) == 2)
 
 def test_load_configuration_invalid_values() -> None:
     with MonkeyPatch.context() as mp:
