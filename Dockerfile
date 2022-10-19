@@ -10,7 +10,9 @@ RUN python -m pip install -r requirements.txt && \
 	rm -rf "./requirements.txt"
 
 FROM base as release
-COPY . ./
+COPY src/ ./
+COPY AWS/ ./
+COPY settings*.toml ./
 ENTRYPOINT [ "python","-m", "awslambdaric" ]
 CMD [ "AWS.app.lambda_handler" ]
 

@@ -1,58 +1,186 @@
-# CephalonAhmes
-
-[![codecov](https://codecov.io/gh/desmaraisp/CephalonAhmes/branch/master/graph/badge.svg?token=8BAQOWNCCO)](https://codecov.io/gh/desmaraisp/CephalonAhmes)
-
-Heroku-hosted bot used to scrape update notes from the warframe forums and post them to the warframe subreddit
-
-You can see the full list of submissions made by the bot over [here](https://www.reddit.com/user/CephalonAhmes/submitted/?sort=new).
-
-What it does:
-
-- It opens all three of those urls: https://forums.warframe.com/forum/170-announcements-events/?sortby=start_date&sortdirection=desc, https://forums.warframe.com/forum/123-developer-workshop-update-notes/?sortby=start_date&sortdirection=desc, https://forums.warframe.com/forum/3-pc-update-notes/?sortby=start_date&sortdirection=desc and finds the most recent post in each of them. 
-
-- To make sure not to post duplicates, it compares said urls to an archive stored in a text file on an Amazon s3 cloud. That archive includes the last 3 posts reposted from each forum, and the name of said submissions
-
-- If the urls and names differ, we have a new post! And so we open the new post with requests and rip out the text (and the title)
-
-- We translate said text to markdown, and do some additional manipulations to fix a few specific formatting issues, since the translation library isn't perfect.
-
-- We then post the translated text to https://www.reddit.com/r/Warframe/ with the "News" flair while making sure not to forget the post size limit (we may need to break it down in multiple parts if it exceeds 40 000 characters)
-
-- We then do it all over again forever with a refresh period of a minute
+<!-- PROJECT SHIELDS -->
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+[![codecov][codecovshield]](https://codecov.io/gh/desmaraisp/CephalonAhmes)
 
 
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/desmaraisp/CephalonAhmes">
+    <img style="border-radius:10px;" src="images/logo.png" alt="Logo" width="120" height="120">
+  </a>
+
+  <p align="center">
+		AWS Lambda-hosted rss feed parser used to read update notes from the <a href="https://forums.warframe.com">warframe official forums</a> and post them to the <a href="https://reddit.com/r/warframe">warframe community subreddit</a>
+    <br />
+    <a href="https://github.com/desmaraisp/CephalonAhmes/issues">Report Bug or Request Feature</a>
+  </p>
+</div>
+
+- [About The Project](#about-the-project)
+	- [Built With](#built-with)
+- [Getting Started](#getting-started)
+	- [Prerequisites](#prerequisites)
+	- [Local Setup](#local-setup)
+	- [Local deployment to AWS](#local-deployment-to-aws)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+- [Acknowledgments](#acknowledgments)
+
+
+<!-- ABOUT THE PROJECT -->
+## About The Project
+
+This reddit bot focuses on parsing rss feeds like this [one](https://forums.warframe.com/forum/123-developer-workshop-update-notes.xml) and converting them into reddit-compatible markdown.
+
+You can see <a href="https://www.reddit.com/r/Warframe/comments/gbjmoz/warframe_revised_railjack_revisited_part_1_update/fp63u3r/">here</a> the reason behind the creation of this project. You can also see the full list of submissions made by the bot over <a href="https://www.reddit.com/r/Warframe/search/?q=author%3Acephalonahmes&sort=top&restrict_sr=on&t=all">here</a>.
 
 
 
-A few notes for people who might want to do something similar, how to make it work:
-
-- You'll first need to have a reddit account. From that account, go to here: https://www.reddit.com/prefs/apps/ and create an app. Select the "script" option, put anything in the redirect uri (in my case, http://localhost:8080) and click create. You then need to take note of the secret key, and the client id key, which is just below the app name and "personal use script".
-
-- You then need to set your username, your password, your client id key and your secret id key as environment variables
-
-- Create a text file on your amazon s3 bucket and get the two access keys. Just like previously, set those as environment variables. The file location should be like this: "Bucket_name/file_name.txt", also an env variable
-
-- You need to have chrome installed. The chromedriver (for selenium) is included automatically with webdriver-manager.
 
 
+### Built With
 
-Process to bring such a script to heroku:
+This project uses the following technologies, among others:
+* <span style="vertical-align: middle;">[![Python][python-shield]][python-url]</span>
 
-- You have to set all the previous environment variables in you heroku env variables tab (under settings). So that's all 4 reddit authetication variables, 2 aws authentication keys and 1 aws file path.
+* <span style="vertical-align: middle;">[![Docker][docker-shield]][docker-url]</span>
 
-- You need to make sure all the modules you use are in the requirements file, with the corresponding version. pip freeze might help you get this
+* <span style="vertical-align: middle;">![Lambda][lambda-shield]</span>
 
-- The runtime file has your python version
-
-- The procfile contains your instructions to heroku, as far as I understand it. You just have to list the heroku dyno type you want, your language and the file you want to run. Make sure to name it "Procfile" and not "Procfile.txt"
-
-- You now have to go under settings in your heroku app and add some buildpacks. You need the python buildpack if it's not there already, then you need to add https://github.com/heroku/heroku-buildpack-google-chrome and https://github.com/heroku/heroku-buildpack-chromedriver. These two are here for the selenium browser, if you don't use it, no need to include them.
-
-- Finally, go under resources and toggle your dyno on, but make sure it's set to free hours
+* SAM CLI/AWS CloudFormation
 
 
-Special notes:
 
-- The warframe forum has an odd behavior with refresh, I initally used request to get the post url, but the website would not refresh the data when refreshed or when responding to a new request. I had to use selenium to do a few manipulations on the site to force it to refresh the data because only actual clicks on the website's sorting menu could force the refresh. If whatever you want to scrape doesn't have this sort of behavior, you could totally remove everything selenium-related and just use requests.
 
-- An easy way to get an amazon s3 cloud with the associated keys if you don't already have an account would be to add the cloud-cube add-on on heroku (under resources), then all you have to do is click on the add-on to see your bucket. The keys are in the settings, top-right corner.
+
+<!-- GETTING STARTED -->
+## Getting Started
+
+To get a local copy up and running, follow these simple example steps.
+
+### Prerequisites
+
+* docker
+* VSCode
+* [devcontainers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+* python (only if you decide not to use VSCode devcontainers)
+
+
+### Local Setup
+
+1. [Create a new reddit application](https://github.com/reddit/reddit/wiki/OAuth2-Quick-Start-Example#first-steps)
+2. [Create an AWS key pair](https://docs.aws.amazon.com/accounts/latest/reference/root-user-access-key.html)
+3. Clone the repo
+   ```sh
+   git clone https://github.com/desmaraisp/CephalonAhmes.git
+   ```
+4. Create .envvars file, then update all secrets using the previously created values
+   ```sh
+   cp ./.envvars.template ./.envvars
+   ```
+5. Open directory using VSCode devcontainer
+
+
+
+
+### Local deployment to AWS
+
+Once you've started your devcontainer, all the tools required to start your own instance of CephalonAhmes should be ready to use. You might want to update the configuration first though, but once you've configured everything, start a bash prompt in vscode and use the following query to create your AWS Lambda function:
+
+```sh
+aws cloudformation deploy --stack-name CephalonAhmesPipelineResources  --template-file SAMDeploy/SAMPreliminaryDeploy.yml
+
+RepositoryUri=$(aws cloudformation list-exports --query "Exports[?Name=='CephalonAhmesRepositoryUri'].Value" --no-paginate --output text)
+
+sam build --template-file ./SAMDeploy/SAMTemplate.yaml
+
+sam deploy --config-file ./SAMDeploy/samconfig.toml --image-repositories "CephalonAhmesFunction=$RepositoryUri" --parameter-overrides "CEPHALONAHMESPRAWCLIENTID=$CEPHALONAHMES_PRAW_CLIENT_ID CEPHALONAHMESPRAWCLIENTSECRET=$CEPHALONAHMES_PRAW_CLIENT_SECRET CEPHALONAHMESPRAWPASSWORD=$CEPHALONAHMES_PRAW_PASSWORD CEPHALONAHMESPRAWUSERNAME=$CEPHALONAHMES_PRAW_USERNAME ConfigurationName=base"
+```
+
+This will use the values we've configured in the `.envvars` file to configure aws cli authentication and to upload environment variables to AWS Lambda upon deploying.
+
+
+## Configuration
+
+All the project settings can be found in the [settings file](./settings.base.toml). It is possible to override the base settings by adding another settings file, such as the [test settings](./settings.test.toml) and by specifying the `ConfigurationName` env variable.
+
+You can also directly override configuration items by setting environment variables formatted as such: `CEPHALONAHMES_[Name of the setting you want to override]`. For example, to override the `PRAW_PASSWORD` setting, set an env var for `CEPHALONAHMES_PRAW_PASSWORD`.
+
+For a full list of all configuration items, see [here (wip)](https://github.com/desmaraisp/CephalonAhmes/wiki)
+
+
+
+
+
+<!-- CONTRIBUTING -->
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+
+
+
+
+<!-- LICENSE -->
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+
+
+
+
+<!-- CONTACT -->
+## Contact
+
+[/u/desmaraisp](http://www.reddit.com/message/compose?to=desmaraisp&subject=Hello%20there!)
+
+
+
+
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+
+* [README template](https://github.com/othneildrew/Best-README-Template/blob/master/BLANK_README.md)
+* [Logo Maker](https://express.adobe.com/express-apps/logo-maker/)
+
+
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/desmaraisp/CephalonAhmes.svg?style=flat
+[contributors-url]: https://github.com/desmaraisp/CephalonAhmes/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/desmaraisp/CephalonAhmes.svg?style=flat
+[forks-url]: https://github.com/desmaraisp/CephalonAhmes/network/members
+[stars-shield]: https://img.shields.io/github/stars/desmaraisp/CephalonAhmes.svg?style=flat
+[stars-url]: https://github.com/desmaraisp/CephalonAhmes/stargazers
+[issues-shield]: https://img.shields.io/github/issues/desmaraisp/CephalonAhmes.svg?style=flat
+[issues-url]: https://github.com/desmaraisp/CephalonAhmes/issues
+[license-shield]: https://img.shields.io/github/license/desmaraisp/CephalonAhmes.svg?style=flat
+[license-url]: https://github.com/desmaraisp/CephalonAhmes/blob/master/LICENSE
+[codecovshield]: https://codecov.io/gh/desmaraisp/CephalonAhmes/branch/master/graph/badge.svg?token=8BAQOWNCCO
+
+[python-shield]: https://img.shields.io/badge/python-DD0031?style=for-the-badge&logo=python&logoColor=white
+[python-url]: https://www.python.org/
+[docker-shield]: https://img.shields.io/badge/docker-DD0031?style=for-the-badge&logo=docker&logoColor=white&color=blue
+[docker-url]: https://www.docker.com/
+[lambda-shield]: https://img.shields.io/badge/Lambda-DD0031?style=for-the-badge&logo=awslambda&logoColor=white&color=orange
