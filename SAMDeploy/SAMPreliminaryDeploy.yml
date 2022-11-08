@@ -25,7 +25,7 @@ Resources:
               "rulePriority": 1,
               "description": "Only keep 1 untagged image",
               "selection": {
-                "tagStatus": "untagged",
+                "tagStatus": "any",
                 "countType": "imageCountMoreThan",
                 "countNumber": 1
               },
