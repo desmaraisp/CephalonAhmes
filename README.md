@@ -113,7 +113,7 @@ All the project settings can be found in the [settings file](./settings.base.tom
 
 You can also directly override configuration items by setting environment variables formatted as such: `CEPHALONAHMES_[Name of the setting you want to override]`. For example, to override the `PRAW_PASSWORD` setting, set an env var for `CEPHALONAHMES_PRAW_PASSWORD`.
 
-For a full list of all configuration items, see [here (wip)](https://github.com/desmaraisp/CephalonAhmes/wiki)
+For a full list of all configuration items, see [here](https://github.com/desmaraisp/CephalonAhmes/wiki)
 
 
 
