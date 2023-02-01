@@ -8,4 +8,4 @@ typed-settings==2.0.2
 awslambdaric==2.0.4
 lxml==4.9.2
 boto3-stubs[s3]==1.26.60
-mypy-boto3==1.26.60
+mypy-boto3==1.26.61
