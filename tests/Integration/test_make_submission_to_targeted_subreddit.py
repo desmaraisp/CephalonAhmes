@@ -1,5 +1,5 @@
 from typing import List
-import praw.models, os, uuid, praw.util, prawcore, praw
+import praw.models, os, uuid, praw.util, praw
 from src import (
         ConfigurationHandler as cgf,
         PrawUtilities as pru

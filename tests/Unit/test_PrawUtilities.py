@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Dict
-import pytest, pytest_mock, praw.models, os, uuid, unittest.mock
+import pytest, pytest_mock, unittest.mock
 from src import (
         ConfigurationHandler as cgf,
         PrawUtilities as pru
