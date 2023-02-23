@@ -7,7 +7,7 @@ from moto import mock_s3
 from src.Models import SubmissionModel, SubmissionListForMultipleSources, SubmissionsListForSingleSource
 from datetime import datetime
 
-def test_fetch_s3_contents_notfound():
+def test_fetch_s3_contents_notfound() -> None:
     settings = cgh.S3Settings(
         PostHistoryFullFileName="File.json",
         S3_BucketName="TestBucket"
@@ -23,7 +23,7 @@ def test_fetch_s3_contents_notfound():
 
         assert(result=="")
     
-def test_fetch_s3_contents_found():
+def test_fetch_s3_contents_found() -> None:
     settings = cgh.S3Settings(
         S3_BucketName="TestBucket",
         PostHistoryFullFileName="File.txt"
@@ -43,7 +43,7 @@ def test_fetch_s3_contents_found():
         assert(result=="BytesContent")
 
 
-def test_fetch_post_history_from_bucket_NotExist():
+def test_fetch_post_history_from_bucket_NotExist() -> None:
     settings = cgh.S3Settings(
         S3_BucketName="TestBucket",
         PostHistoryFullFileName="File.json"
@@ -60,7 +60,7 @@ def test_fetch_post_history_from_bucket_NotExist():
         assert(result.forum_sources == [])
 
 
-def test_fetch_post_history_from_bucket_Exists():
+def test_fetch_post_history_from_bucket_Exists() -> None:
     settings = cgh.S3Settings(
         S3_BucketName="TestBucket",
         PostHistoryFullFileName="File.json"
