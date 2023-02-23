@@ -1,4 +1,4 @@
-FROM python:3.8-slim as base
+FROM python:3.10-slim as base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y git curl unzip
@@ -22,10 +22,3 @@ RUN pip install -r requirements-test.txt && \
 FROM test-deps as test
 COPY . ./
 ENTRYPOINT [ "python", "-m", "pytest" ]
-
-FROM test-deps as dev
-COPY requirements-dev.txt ./
-RUN pip install -r requirements-dev.txt && \
-	rm -rf "./requirements-dev.txt"
-RUN pipx install aws-sam-cli
-ENV PATH="${PATH}:/root/.local/bin"

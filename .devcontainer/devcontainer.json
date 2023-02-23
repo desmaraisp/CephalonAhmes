@@ -1,19 +1,35 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "Existing Dockerfile",
-
-	"context": "..",
-	"dockerFile": "../Dockerfile",
-	"build": {
-		"target": "dev"
-	},
-	"runArgs": ["--env-file","${localWorkspaceFolder}/.envvars"],
-	"forwardPorts": [
-		3000,
-		3001
+	"name": "Python 3",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.10",
+	"runArgs": [
+		"--env-file",
+		"${localWorkspaceFolder}/.envvars"
 	],
+	"features": {
+		"ghcr.io/devcontainers/features/aws-cli:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": true,
+			"azureDnsAutoDetection": true,
+			"version": "20.10",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/customink/codespaces-features/sam-cli:1": {
+			"version": "1.65.0"
+		}
+	},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
-			"settings": { 
+			"settings": {
 				"python.testing.pytestArgs": [
 					"--no-cov"
 				],
@@ -28,14 +44,10 @@
 				"python.linting.mypyEnabled": true
 			},
 			"extensions": [
-				"ms-python.python",
-				"bungcip.better-toml",
-				"amazonwebservices.aws-toolkit-vscode"
+				"bungcip.better-toml"
 			]
 		}
-	},
-	"features": {
-		"docker-from-docker": "20.10",
-		"aws-cli": "latest"
 	}
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
 }
