@@ -76,7 +76,7 @@ To get a local copy up and running, follow these simple example steps.
 ### Local Setup
 
 1. [Create a new reddit application](https://github.com/reddit/reddit/wiki/OAuth2-Quick-Start-Example#first-steps)
-2. [Create an AWS key pair](https://docs.aws.amazon.com/accounts/latest/reference/root-user-access-key.html)
+2. [Create an AWS key pair](https://docs.aws.amazon.com/accounts/latest/reference/root-user-access-key.html). Alternatively, you can skip this and log in with `aws configure sso` if your account supports it.
 3. Clone the repo
    ```sh
    git clone https://github.com/desmaraisp/CephalonAhmes.git
