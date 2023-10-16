@@ -1,4 +1,4 @@
 autopep8==2.0.4
 flake8==6.1.0
 mypy==1.6.0
-types-requests==2.31.0.8
+types-requests==2.31.0.9
