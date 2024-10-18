@@ -7,5 +7,5 @@ git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b89
 typed-settings==24.5.0
 awslambdaric==2.2.1
 lxml==5.3.0
-boto3-stubs[s3]==1.35.42
+boto3-stubs[s3]==1.35.43
 mypy-boto3==1.35.42
