@@ -1,6 +1,6 @@
 praw==7.8.1
 beautifulsoup4==4.12.3
-boto3==1.35.73
+boto3==1.35.74
 requests==2.32.3
 dataclass-wizard==0.32.0
 git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b891b24a#egg=html2text
