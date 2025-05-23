@@ -5,7 +5,7 @@ requests==2.32.3
 dataclass-wizard==0.35.0
 git+https://github.com/Alir3z4/html2text.git@2ee4495f33c793a110e5fa918b3d8f94b891b24a#egg=html2text
 typed-settings==24.6.0
-awslambdaric==3.0.2
+awslambdaric==3.1.0
 lxml==5.4.0
 boto3-stubs[s3]==1.38.21
 mypy-boto3==1.38.0
