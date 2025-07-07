@@ -1,5 +1,5 @@
 pytest==8.4.1
-pytest-cov==6.1.1
+pytest-cov==6.2.1
 httpretty==1.1.4
 moto[s3]==5.1.8
 pytest-mock==3.14.1
