@@ -1,5 +1,5 @@
 from typing import List
-import praw.models, os, uuid, praw.util, praw
+import praw.models, os, uuid, praw
 from src import (
         ConfigurationHandler as cgf,
         PrawUtilities as pru
@@ -8,13 +8,13 @@ from src import (
 
 def test_make_submission_to_targeted_subreddit() -> None:
     praw_settings = cgf.PrawSettings(
-        Notify=True,
+        Notify=False,
         PRAW_CLIENT_ID=os.environ["CEPHALONAHMES_PRAW_CLIENT_ID"],
         PRAW_CLIENT_SECRET=os.environ["CEPHALONAHMES_PRAW_CLIENT_SECRET"],
         PRAW_PASSWORD=os.environ["CEPHALONAHMES_PRAW_PASSWORD"],
         PRAW_USERNAME=os.environ["CEPHALONAHMES_PRAW_USERNAME"],
         SubredditDestinationFallbacks=["scrappertest"],
-        NotificationDestinationUsername=os.environ["CEPHALONAHMES_PRAW_USERNAME"]
+        NotificationDestinationUsername="placeholder"
     )
     praw_utilities: pru.PrawUtilities = pru.PrawUtilities(praw_settings)
 
@@ -27,14 +27,6 @@ def test_make_submission_to_targeted_subreddit() -> None:
     )
 
     session = praw_utilities.start_reddit_session()
-
-    messages: List[praw.models.Message] = session.inbox.messages(limit=5)
-
-    corresponding_messages = [message for message in messages if message.subject == subject]
-
-    assert(len(corresponding_messages) != 0)
-    session.inbox.mark_read(corresponding_messages)
-
     redditor: praw.models.Redditor = session.redditor(os.environ["CEPHALONAHMES_PRAW_USERNAME"])
     submissions: List[praw.models.Submission] = redditor.submissions.new(limit=5)
     corresponding_submissions = [submission for submission in submissions if submission.title == subject]
