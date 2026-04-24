@@ -1,0 +1,57 @@
+name: Run integration test
+
+on:
+  pull_request:
+    branches:
+    - master
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run mypy linter
+      shell: pwsh
+      run: |
+        docker build . -t mypyimage --target type-check
+
+        docker run --rm --name mypycontainer mypyimage
+        if($LASTEXITCODE -eq 1){
+          throw "Type checking failed"
+        }
+
+    - name: Run Tests
+      shell: pwsh
+      env:
+        CEPHALONAHMES_PRAW_CLIENT_ID: ${{ secrets.PRAW_CLIENT_ID }}
+        CEPHALONAHMES_PRAW_CLIENT_SECRET: ${{ secrets.PRAW_CLIENT_SECRET }}
+        CEPHALONAHMES_PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
+        CEPHALONAHMES_PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
+      run: |
+        docker build . -t pytestimage --target test
+
+        docker run --rm `
+          -e CEPHALONAHMES_PRAW_CLIENT_ID=$env:CEPHALONAHMES_PRAW_CLIENT_ID `
+          -e CEPHALONAHMES_PRAW_CLIENT_SECRET=$env:CEPHALONAHMES_PRAW_CLIENT_SECRET `
+          -e CEPHALONAHMES_PRAW_PASSWORD=$env:CEPHALONAHMES_PRAW_PASSWORD `
+          -e CEPHALONAHMES_PRAW_USERNAME=$env:CEPHALONAHMES_PRAW_USERNAME `
+          --name pytestcontainer pytestimage
+
+        echo "Tests completed"
+        if($LASTEXITCODE -eq 1){
+          throw "Unit tests failed"
+        }
+        docker cp pytestcontainer:/app/coverage.xml ./coverage.xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+        fail_ci_if_error: true # optional (default = false)
+        verbose: true # optional (default = false)

@@ -4,9 +4,6 @@ on:
   push:
     branches:
     - master
-  pull_request:
-    branches:
-    - master
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -19,25 +16,34 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: aws-actions/setup-sam@v2
-    - uses: aws-actions/configure-aws-credentials@v1
-      with:
-        role-to-assume: arn:aws:iam::742387416778:role/CephalonAhmesGithubTrustPolicy
-        aws-region: us-east-1
-    
-    - name: Run Tests
+
+    - name: Run mypy linter
       shell: pwsh
       run: |
-        echo "Starting docker build"
+        docker build . -t mypyimage --target type-check
+
+        docker run --rm --name mypycontainer mypyimage
+        if($LASTEXITCODE -eq 1){
+          throw "Type checking failed"
+        }
+
+    - name: Run Tests
+      shell: pwsh
+      env:
+        CEPHALONAHMES_PRAW_CLIENT_ID: ${{ secrets.PRAW_CLIENT_ID }}
+        CEPHALONAHMES_PRAW_CLIENT_SECRET: ${{ secrets.PRAW_CLIENT_SECRET }}
+        CEPHALONAHMES_PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
+        CEPHALONAHMES_PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
+      run: |
         docker build . -t pytestimage --target test
-        $content = @'
-        CEPHALONAHMES_PRAW_CLIENT_ID=${{ secrets.PRAW_CLIENT_ID }}
-        CEPHALONAHMES_PRAW_CLIENT_SECRET=${{ secrets.PRAW_CLIENT_SECRET }}
-        CEPHALONAHMES_PRAW_PASSWORD=${{ secrets.PRAW_PASSWORD }}
-        CEPHALONAHMES_PRAW_USERNAME=${{ secrets.PRAW_USERNAME }}
-        '@
-        
-        $content | Set-Content -Path ./.envvars
-        docker run --env-file ./.envvars --name pytestcontainer pytestimage
+
+        docker run --rm `
+          -e CEPHALONAHMES_PRAW_CLIENT_ID=$env:CEPHALONAHMES_PRAW_CLIENT_ID `
+          -e CEPHALONAHMES_PRAW_CLIENT_SECRET=$env:CEPHALONAHMES_PRAW_CLIENT_SECRET `
+          -e CEPHALONAHMES_PRAW_PASSWORD=$env:CEPHALONAHMES_PRAW_PASSWORD `
+          -e CEPHALONAHMES_PRAW_USERNAME=$env:CEPHALONAHMES_PRAW_USERNAME `
+          --name pytestcontainer pytestimage
+
         echo "Tests completed"
         if($LASTEXITCODE -eq 1){
           throw "Unit tests failed"
@@ -50,6 +56,11 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
+
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: arn:aws:iam::742387416778:role/CephalonAhmesGithubTrustPolicy
+        aws-region: us-east-1
 
     - name: Push to AWS
       if: ${{ github.event_name == 'push' }}
