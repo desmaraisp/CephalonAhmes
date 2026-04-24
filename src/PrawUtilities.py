@@ -15,7 +15,7 @@ class PrawUtilities:
         bot_login = praw.Reddit(
                 client_id=self.settings.PRAW_CLIENT_ID,
                 client_secret=self.settings.PRAW_CLIENT_SECRET,
-                user_agent='warframe patch notes retriever bot 0.1',
+                user_agent='warframe patch notes retriever 0.1',
                 username=self.settings.PRAW_USERNAME,
                 password=self.settings.PRAW_PASSWORD,
                 validate_on_submit=True,
@@ -77,9 +77,10 @@ class PrawUtilities:
                     subject= submission_title, message=submission.url
                 )
 
+        comment: praw.models.Comment | praw.models.Message | None
         while content_after_limit:
             content_before_limit, content_after_limit = SMS.split_string_on_last_separator_before_cutoff_length(
                     content_after_limit, 10000, ['\n\n', '\n'])
-            submission = submission.reply(body=content_before_limit.strip())
-            submission.disable_inbox_replies()
-
+            comment = submission.reply(body=content_before_limit.strip())
+            if isinstance(comment, praw.models.Comment):
+                comment.disable_inbox_replies()
