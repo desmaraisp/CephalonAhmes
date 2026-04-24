@@ -3,7 +3,7 @@ from src import (
     ConfigurationHandler as cgh,
 )
 import boto3
-from moto import mock_s3
+from moto import mock_aws
 from src.Models import SubmissionModel, SubmissionListForMultipleSources, SubmissionsListForSingleSource
 from datetime import datetime
 
@@ -15,7 +15,7 @@ def test_fetch_s3_contents_notfound() -> None:
 
     s3Utilities = S3Utilities.S3Utilities(settings)
 
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
         
@@ -31,7 +31,7 @@ def test_fetch_s3_contents_found() -> None:
 
     s3Utilities = S3Utilities.S3Utilities(settings)
 
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
 
@@ -51,7 +51,7 @@ def test_fetch_post_history_from_bucket_NotExist() -> None:
 
     s3Utilities = S3Utilities.S3Utilities(settings)
 
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
         
@@ -68,7 +68,7 @@ def test_fetch_post_history_from_bucket_Exists() -> None:
 
     s3Utilities = S3Utilities.S3Utilities(settings)
 
-    with mock_s3():
+    with mock_aws():
         conn = boto3.resource('s3')
         conn.create_bucket(Bucket=settings.S3_BucketName)
 
