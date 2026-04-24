@@ -23,5 +23,5 @@ def test_load_configuration() -> None:
 def test_load_configuration_invalid_values() -> None:
     with MonkeyPatch.context() as mp:
         mp.setenv("CEPHALONAHMES_S3_BUCKETNAME", "")
-        with pytest.raises(exceptions.InvalidValueError):
+        with pytest.raises(exceptions.InvalidSettingsError):
             ConfigurationHandler.init_settings("test")
