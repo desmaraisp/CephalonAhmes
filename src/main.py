@@ -40,6 +40,10 @@ def _main(AWS_Request_ID: Optional[str] = None) -> None:
         rss_feed_content = response.text
         submission_model = ParsingUtilities.GetLastItemInformation(rss_feed_content)
         
+        if(submission_model is None):
+            logging.warning(f"Could not parse submission model from feed {XMLUrl}. Skipping.")
+            continue
+        
         post_history_for_current_source_rss_feed = next((i for i in post_history.forum_sources if i.rss_source_url == XMLUrl), None)
         
         if post_history_for_current_source_rss_feed and len([i for i in post_history_for_current_source_rss_feed.submissions_list if i.title == submission_model.title or i.guid==submission_model.guid]) > 0:
