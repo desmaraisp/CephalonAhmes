@@ -1,43 +1,77 @@
-from typing import Any, Generator
-import httpretty, pytest, requests
+import threading
+import socket
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from requests.exceptions import RetryError
+import pytest, responses
+from responses import registries
 from src import (
     WebRequestMethods as wrm,
 )
 
-@pytest.fixture
-def http_pretty_activate() -> Generator[None, None, None]:
-    httpretty.enable(verbose=True, allow_net_connect=False)
-    
-    yield
-    
-    httpretty.disable()
-    httpretty.reset() 
 
-def test_get_response_from_generic_url_success(http_pretty_activate: None) -> None:
-    httpretty.register_uri(httpretty.GET, 'http://test.com/', status=200)
-    response_text = (wrm.get_response_from_generic_url('http://test.com/')).text
-        
-    assert(response_text =='{"message": "HTTPretty :)"}')
+@responses.activate
+def test_get_response_from_generic_url_success() -> None:
+    responses.add(responses.GET, 'https://test.com/', body='{"message": "HTTPretty :)"}', status=200)
+    response_text = (wrm.get_response_from_generic_url('https://test.com/')).text
+    assert response_text == '{"message": "HTTPretty :)"}'
 
-def test_get_response_from_generic_url_500(http_pretty_activate: None) -> None:
-    httpretty.register_uri(httpretty.GET, 'http://test.com/', status=500)
-    
-    with pytest.raises(Exception, match="HTTP failure for 'http://test.com/'") as e:
-        wrm.get_response_from_generic_url('http://test.com/', 1)
 
-class Exception_Callback_Generator:
-    count:int = 0
+@responses.activate
+def test_get_response_from_generic_url_500() -> None:
+    responses.add(responses.GET, 'https://test.com/', status=500)
+    with pytest.raises(RetryError):
+        wrm.get_response_from_generic_url('https://test.com/', 1)
 
-    def trigger(self, _: Any, __: Any, ___: Any) -> None:
-        self.count+=1
-        raise requests.Timeout('Connection successfully timed out.')
+class SlowHandler(BaseHTTPRequestHandler):
+    is_called = False
+    def do_GET(self):
+        try:
+            if(SlowHandler.is_called):
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"Second response")
+                return
 
-def test_get_response_from_generic_url_timeout(http_pretty_activate: None) -> None:
-    callback_generator = Exception_Callback_Generator()
-    httpretty.register_uri(httpretty.GET, 'http://test.com/', status=200, body=callback_generator.trigger)
-    
-    with pytest.raises(Exception, match="HTTP failure for 'http://test.com/'") as e:
-        wrm.get_response_from_generic_url('http://test.com/', 2)
-    
-    assert(callback_generator.count == 3)
+            SlowHandler.is_called = True
+            import time
+            time.sleep(1)  # Deliberately longer than the client timeout
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Delayed response")
+        except Exception:
+            pass
 
+def run_server(server):
+    server.serve_forever()
+
+def test_get_response_from_generic_url_timeout() -> None:
+    # Find a free port
+    sock = socket.socket()
+    sock.bind(('', 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    server = HTTPServer(('localhost', port), SlowHandler)
+    thread = threading.Thread(target=run_server, args=(server,), daemon=True)
+    thread.start()
+    url = f'http://localhost:{port}/'
+    try:
+        response = wrm.get_response_from_generic_url(url, 3, 0.5)
+        assert response.status_code == 200
+        assert response.text == "Second response"
+    finally:
+        server.shutdown()
+        thread.join(timeout=1)
+
+@responses.activate(registry=registries.OrderedRegistry)
+def test_max_retries():
+    url = "https://example.com"
+    rsp1 = responses.get(url, body="Error", status=500)
+    rsp3 = responses.get(url, body="Error", status=500)
+    rsp4 = responses.get(url, body="Error", status=500)
+
+    with pytest.raises(RetryError):
+        wrm.get_response_from_generic_url(url, 2)
+
+    assert rsp1.call_count == 1
+    assert rsp3.call_count == 1
+    assert rsp4.call_count == 1
