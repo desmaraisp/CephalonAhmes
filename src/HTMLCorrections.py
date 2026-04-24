@@ -7,7 +7,9 @@ import re
 def decompose_all_blockquote_headers(soup: BeautifulSoup) -> None:
     block: bs4elem.Tag
     for block in soup.find_all("blockquote"):
-        block.find("div").decompose()
+        div = block.find("div")
+        if(div is not None):
+            div.decompose()
 
 
 def decompose_all_spoiler_headers(soup: BeautifulSoup) -> None:
@@ -28,7 +30,7 @@ def strip_image_links_to_avoid_double_links(soup: BeautifulSoup) -> None:
     for image in soup.find_all("img"):
         for link in image.find_parents('a'):
             image_source=link["href"]
-            link["href"]=None
+            del link["href"]
             image["src"]=image_source
 
 
@@ -36,7 +38,16 @@ def convert_mp4_to_link(soup: BeautifulSoup) -> None:
     source_element: bs4elem.Tag
     for source_element in soup.find_all("source",{"type":"video/mp4"}):
         video_source=source_element["src"]
-        source_element.parent.find('a')['href']=video_source
+        
+        parent = source_element.parent
+        if(parent is None):
+            continue
+        
+        anchor = parent.find('a')
+        if anchor is None:
+            continue
+        
+        anchor['href']=video_source
 
 
 
@@ -57,7 +68,7 @@ def eliminate_and_propagate_tag(soup: BeautifulSoup, tag_name :str) -> None:
         for navigable_string in tag.find_all(string=True, recursive=True):
             newtag = soup.new_tag(tag_name)
             navigable_string.wrap(newtag)
-            newtag.string = strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(newtag.string) #Removes spaces in the text to reduce incidence of spaces making markdown formatting not work
+            newtag.string = strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(newtag.string or "") #Removes spaces in the text to reduce incidence of spaces making markdown formatting not work
 
         tag.name="span"
 
@@ -73,9 +84,9 @@ def convert_iframes_to_link(soup: BeautifulSoup) -> None:
         newtag = soup.new_tag("a")
 
         if tag.has_attr("data-embed-src"):
-            newtag.string = tag["data-embed-src"]
+            newtag.string = str(tag["data-embed-src"])
         elif tag.has_attr("src"):
-            newtag.string = tag["src"]
+            newtag.string = str(tag["src"])
         else:continue
         tag.wrap(newtag)
         tag.decompose()
@@ -89,7 +100,7 @@ def add_spoiler_tag_to_html_element(element: bs4elem.Tag, soup: BeautifulSoup) -
         elif str(child).strip(' '):
             element_has_string_attribute = True
 
-    if (element_has_string_attribute) and not element.findParent("li"):
+    if (element_has_string_attribute) and not element.find_parent("li"):
         if element.name in ["p","span","div"]:
             element.insert(0, ">!")
 
@@ -112,24 +123,28 @@ def Process_Spoiler(soup: BeautifulSoup) -> None:
             newtag.string = ">!"
             element.wrap(newtag)
 
-        for element in spoiler.findParents("li"):
+        for element in spoiler.find_parents("li"):
             newtag = soup.new_tag("span")
             newtag.string = ">!"
             element.wrap(newtag)
 
-def decompose_all_table_cell_children(table_cell : bs4elem.Tag) -> None:
+def decompose_all_table_cell_children(table_cell : bs4elem.PageElement) -> None:
     obj: bs4elem.Tag
-    for obj in table_cell.find_all(recursive=True):
+    for obj in table_cell.find_all_next(recursive=True):
         obj.unwrap()
 
-def replace_empty_table_cell_content_with_dash(table_cell : bs4elem.Tag) -> None:
+def replace_empty_table_cell_content_with_dash(table_cell : bs4elem.PageElement) -> None:
     if not table_cell.text.strip():
-        table_cell.string="-"
+        table_cell.text="-"
 
 def process_tables(soup: BeautifulSoup) -> None:
     tag: bs4elem.Tag
     for tag in soup.find_all('table'):
-        for table_cell in tag.findChildren('td'):
+        td = tag.find('td')
+        if(td is None):
+            continue
+        
+        for table_cell in td:
             decompose_all_table_cell_children(table_cell)
             replace_empty_table_cell_content_with_dash(table_cell)
 
