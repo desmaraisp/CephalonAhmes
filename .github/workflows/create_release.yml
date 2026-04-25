@@ -51,19 +51,18 @@ jobs:
         docker cp pytestcontainer:/app/coverage.xml ./coverage.xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe
       with:
         token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
 
-    - uses: aws-actions/configure-aws-credentials@v1
+    - uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37
       with:
         role-to-assume: arn:aws:iam::742387416778:role/CephalonAhmesGithubTrustPolicy
         aws-region: us-east-1
 
     - name: Push to AWS
-      if: ${{ github.event_name == 'push' }}
       shell: pwsh
       run: |
         echo "Deploying"
