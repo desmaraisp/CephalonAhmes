@@ -13,6 +13,11 @@ updates:
     patterns: ["*"]
     multi-ecosystem-group: "all-dependencies"
 
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+
   - package-ecosystem: "pip"
     directory: "/"
     patterns: ["*"]
