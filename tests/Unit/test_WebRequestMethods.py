@@ -47,7 +47,7 @@ def run_server(server):
 def test_get_response_from_generic_url_timeout() -> None:
     # Find a free port
     sock = socket.socket()
-    sock.bind(('', 0))
+    sock.bind(('localhost', 0))
     port = sock.getsockname()[1]
     sock.close()
     server = HTTPServer(('localhost', port), SlowHandler)
