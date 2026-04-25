@@ -128,23 +128,19 @@ def Process_Spoiler(soup: BeautifulSoup) -> None:
             newtag.string = ">!"
             element.wrap(newtag)
 
-def decompose_all_table_cell_children(table_cell : bs4elem.PageElement) -> None:
+def decompose_all_table_cell_children(table_cell : bs4elem.Tag) -> None:
     obj: bs4elem.Tag
-    for obj in table_cell.find_all_next(recursive=True):
+    for obj in table_cell.find_all(recursive=True):
         obj.unwrap()
 
-def replace_empty_table_cell_content_with_dash(table_cell : bs4elem.PageElement) -> None:
+def replace_empty_table_cell_content_with_dash(table_cell : bs4elem.Tag) -> None:
     if not table_cell.text.strip():
-        table_cell.text="-"
+        table_cell.string = "-"
 
 def process_tables(soup: BeautifulSoup) -> None:
     tag: bs4elem.Tag
     for tag in soup.find_all('table'):
-        td = tag.find('td')
-        if(td is None):
-            continue
-        
-        for table_cell in td:
+        for table_cell in tag.find_all(['td','th']):
             decompose_all_table_cell_children(table_cell)
             replace_empty_table_cell_content_with_dash(table_cell)
 
