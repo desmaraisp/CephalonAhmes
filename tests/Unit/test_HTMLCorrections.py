@@ -63,7 +63,7 @@ def test_strip_image_links_to_avoid_double_links() -> None:
 
     htmlc.strip_image_links_to_avoid_double_links(tag)
 
-    assert tag.decode_contents()=="""<a href><img src="hreflink"/></a>"""
+    assert tag.decode_contents()=="""<a><img src="hreflink"/></a>"""
 
 def test_strip_image_links_to_avoid_double_links2() -> None:
     InitialString = """<a href="hreflink"><div><img src="imgsource"></div></a>"""
@@ -71,7 +71,7 @@ def test_strip_image_links_to_avoid_double_links2() -> None:
 
     htmlc.strip_image_links_to_avoid_double_links(tag)
 
-    assert tag.decode_contents()=="""<a href><div><img src="hreflink"/></div></a>"""
+    assert tag.decode_contents()=="""<a><div><img src="hreflink"/></div></a>"""
 
 def test_convert_mp4_to_link() -> None:
     InitialString = """<div><a href="SomeRandomHref"/><source type="video/mp4" src="srclink"/></div>"""
@@ -122,8 +122,11 @@ def test_add_spoiler_tag_to_html_element() -> None:
 
     soup = BeautifulSoup(InitialString, 'html.parser')
 
-    htmlc.add_spoiler_tag_to_html_element(soup.find('div', recursive=True), soup)
+    div = soup.find('div', recursive=True)
+    if(div is None):
+        raise ValueError("Div not found")
 
+    htmlc.add_spoiler_tag_to_html_element(div, soup)
 
     assert html.unescape(soup.decode_contents())=="""
 		<span>
