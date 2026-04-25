@@ -1,4 +1,4 @@
-name: Run integration test
+name: Release
 
 on:
   push:
@@ -10,12 +10,12 @@ permissions:
   contents: read  # This is required for actions/checkout
 
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v6
-    - uses: aws-actions/setup-sam@v2
+    - uses: aws-actions/setup-sam@f84ec7d548307efafe33230528756de3c5841a17
 
     - name: Run mypy linter
       shell: pwsh
