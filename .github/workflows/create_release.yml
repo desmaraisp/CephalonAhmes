@@ -37,7 +37,7 @@ jobs:
       run: |
         docker build . -t pytestimage --target test
 
-        docker run --rm `
+        docker run `
           -e CEPHALONAHMES_PRAW_CLIENT_ID=$env:CEPHALONAHMES_PRAW_CLIENT_ID `
           -e CEPHALONAHMES_PRAW_CLIENT_SECRET=$env:CEPHALONAHMES_PRAW_CLIENT_SECRET `
           -e CEPHALONAHMES_PRAW_PASSWORD=$env:CEPHALONAHMES_PRAW_PASSWORD `
