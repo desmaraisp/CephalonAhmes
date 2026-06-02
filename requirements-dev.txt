@@ -1,5 +1,5 @@
 autopep8==2.3.2
 flake8==7.3.0
-mypy==1.20.2
-types-requests==2.33.0.20260408
+mypy==2.1.0
+types-requests==2.33.0.20260518
 lxml-stubs==0.5.1
