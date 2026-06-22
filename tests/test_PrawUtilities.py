@@ -24,7 +24,7 @@ class mocked_Reddit_Object:
     def subreddit(self, name: str) -> mocked_subreddit_object:
         return self.subreddit_return_value[name]
     
-@pytest.fixture
+@pytest.fixture  # type: ignore[untyped-decorator]
 def mock_praw(mocker: pytest_mock.MockerFixture) -> unittest.mock.MagicMock:
     mock_function = mocker.patch.object(pru.PrawUtilities, 'start_reddit_session')
     mock_function.return_value = mocked_Reddit_Object({

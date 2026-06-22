@@ -9,14 +9,14 @@ from src import (
 )
 
 
-@responses.activate
+@responses.activate  # type: ignore[untyped-decorator]
 def test_get_response_from_generic_url_success() -> None:
     responses.add(responses.GET, 'https://test.com/', body='{"message": "HTTPretty :)"}', status=200)
     response_text = (wrm.get_response_from_generic_url('https://test.com/')).text
     assert response_text == '{"message": "HTTPretty :)"}'
 
 
-@responses.activate
+@responses.activate  # type: ignore[untyped-decorator]
 def test_get_response_from_generic_url_500() -> None:
     responses.add(responses.GET, 'https://test.com/', status=500)
     with pytest.raises(RetryError):
@@ -62,7 +62,7 @@ def test_get_response_from_generic_url_timeout() -> None:
         server.shutdown()
         thread.join(timeout=1)
 
-@responses.activate(registry=registries.OrderedRegistry)
+@responses.activate(registry=registries.OrderedRegistry)  # type: ignore[untyped-decorator]
 def test_max_retries() -> None:
     url = "https://example.com"
     rsp1 = responses.get(url, body="Error", status=500)

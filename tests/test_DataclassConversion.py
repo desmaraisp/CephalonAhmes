@@ -6,7 +6,7 @@ from src import (
 from datetime import datetime
 import typing
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[untyped-decorator]
 def shared_class_object() -> Models.SubmissionListForMultipleSources:
     individual_submission_model2 = Models.SubmissionModel(
         contents="contents",
@@ -43,7 +43,7 @@ def shared_class_object() -> Models.SubmissionListForMultipleSources:
 
     return class_object
 
-@pytest.fixture
+@pytest.fixture  # type: ignore[untyped-decorator]
 def shared_dict_object() -> typing.Dict:
     return {
         "forum_sources": [
