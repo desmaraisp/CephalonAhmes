@@ -11,6 +11,21 @@ def decompose_all_blockquote_headers(soup: BeautifulSoup) -> None:
         if(div is not None):
             div.decompose()
 
+def decompose_all_span(soup: BeautifulSoup) -> None:
+    # The span tags are used for formatting purposes, but they can cause issues with markdown formatting.
+    # For example, if a span tag is used to make text bold, it can prevent the markdown syntax for bold from working properly.
+    # By decomposing all span tags, we can get rid of a whole class of issues
+    span: bs4elem.Tag
+    for span in soup.find_all("span"):
+        span.unwrap()
+
+
+def decompose_all_b(soup: BeautifulSoup) -> None:
+    # The <b> tags cause excessive bolding when converted to markdown, so we can just replace them with their text content
+    b: bs4elem.Tag
+    for b in soup.find_all("b"):
+        b.unwrap()
+
 
 def decompose_all_spoiler_headers(soup: BeautifulSoup) -> None:
     spoilerheader: bs4elem.Tag
@@ -51,31 +66,41 @@ def convert_mp4_to_link(soup: BeautifulSoup) -> None:
 
 
 
-def strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(string: str) -> str:
-    def my_replace(match: re.Match) -> str:
-        return match.group().replace("\t","").replace(" ","")
+def decompose_all_strong(soup: BeautifulSoup) -> None:
+    strong: bs4elem.Tag
+    for strong in soup.find_all("strong"):
+        text = strong.text
 
-    pattern = r'^\s*(?=\S)|(?<=\S)\s*$' #all trailing or leading whitespaces
+        if(not text.strip()):
+            strong.unwrap()
+            continue
 
-    return re.sub(pattern, my_replace, string)
+        leading_ws = re.match(r'^\s*', text)
+        prefix = f"{leading_ws.group() if leading_ws else ''}**"
 
+        trailing_ws = re.search(r'\s*$', text)
+        suffix = f"**{trailing_ws.group() if trailing_ws else ''}"
 
-def eliminate_and_propagate_tag(soup: BeautifulSoup, tag_name :str) -> None:
-    tag: bs4elem.Tag
-    for tag in soup.find_all(tag_name):
-        
-        navigable_string: bs4elem.NavigableString
-        for navigable_string in tag.find_all(string=True, recursive=True):
-            newtag = soup.new_tag(tag_name)
-            navigable_string.wrap(newtag)
-            newtag.string = strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(newtag.string or "") #Removes spaces in the text to reduce incidence of spaces making markdown formatting not work
-
-        tag.name="span"
+        strong.insert_after(f"{prefix}{text.strip()}{suffix}")
+        strong.decompose()
 
 
-def propagate_elements_to_children(soup: BeautifulSoup) -> None:
-    eliminate_and_propagate_tag(soup, 'em')
-    eliminate_and_propagate_tag(soup, 'strong')
+def decompose_all_em(soup: BeautifulSoup) -> None:
+    em: bs4elem.Tag
+    for em in soup.find_all("em"):
+        text = em.text
+        if(not text.strip()):
+            em.unwrap()
+            continue
+
+        leading_ws = re.match(r'^\s*', text)
+        prefix = f"{leading_ws.group() if leading_ws else ''}_"
+
+        trailing_ws = re.search(r'\s*$', text)
+        suffix = f"_{trailing_ws.group() if trailing_ws else ''}"
+
+        em.insert_after(f"{prefix}{text.strip()}{suffix}")
+        em.decompose()
 
 
 def convert_iframes_to_link(soup: BeautifulSoup) -> None:
@@ -92,41 +117,28 @@ def convert_iframes_to_link(soup: BeautifulSoup) -> None:
         tag.decompose()
 
 
-def add_spoiler_tag_to_html_element(element: bs4elem.Tag, soup: BeautifulSoup) -> None:
-    element_has_string_attribute = False
-    for child in element.children:
-        if not (str(type(child))=="<class 'bs4.element.NavigableString'>"):
-            continue
-        elif str(child).strip(' '):
-            element_has_string_attribute = True
+def process_spoiler(soup: BeautifulSoup) -> None:
+    def internal(spoiler: bs4elem.Tag, tag_name: str) -> None:
+        tag: bs4elem.Tag
+        for tag in spoiler.find_all(tag_name):
+            text = tag.text
 
-    if (element_has_string_attribute) and not element.find_parent("li"):
-        if element.name in ["p","span","div"]:
-            element.insert(0, ">!")
+            leading_ws = re.match(r'^\s*', text)
+            prefix = f"{leading_ws.group() if leading_ws else ''}>!"
 
+            trailing_ws = re.search(r'\s*$', text)
+            suffix = f"!<{trailing_ws.group() if trailing_ws else ''}"
 
-def Process_Spoiler(soup: BeautifulSoup) -> None:
+            tag.insert_after(soup.new_tag("p", string=f"{prefix}{text.strip()}{suffix}"))
+            tag.decompose()
+
     spoiler: bs4elem.Tag
     for spoiler in soup.find_all("div",{"class":"ipsSpoiler"}):
-        
-        element: bs4elem.Tag
-        for element in spoiler.find_all("br"):
-            element.decompose()
+        internal(spoiler, "p")
+        internal(spoiler, "li")
+        for list in spoiler.find_all(["ul", "ol"]):
+            list.unwrap()
 
-        add_spoiler_tag_to_html_element(spoiler, soup)
-
-        for element in spoiler.find_all():
-            add_spoiler_tag_to_html_element(element, soup)
-
-        for element in spoiler.find_all("li"):
-            newtag = soup.new_tag("span")
-            newtag.string = ">!"
-            element.wrap(newtag)
-
-        for element in spoiler.find_parents("li"):
-            newtag = soup.new_tag("span")
-            newtag.string = ">!"
-            element.wrap(newtag)
 
 def decompose_all_table_cell_children(table_cell : bs4elem.Tag) -> None:
     obj: bs4elem.Tag
@@ -145,16 +157,42 @@ def process_tables(soup: BeautifulSoup) -> None:
             replace_empty_table_cell_content_with_dash(table_cell)
 
 
+def process_nested_lists(soup: BeautifulSoup, max_depth: int = 3) -> None:
+    # Recurses through the entire doc to find deeply nested lists and "fake" them. This is necessary because Reddit does not support
+    # lists nested more than three levels deep and the source HTML can have those.
+    list_tag_names = ["ul","ol"]
 
+    def recurse(tag: bs4elem.Tag, current_depth: int) -> None:
+        for child in tag.find_all(recursive=False):
+            if(child.name not in list_tag_names):
+                recurse(child, current_depth)
+                continue
 
+            next_depth = current_depth + 1
+            recurse(child, next_depth)
+
+            if next_depth > max_depth:
+                for li in child.find_all("li", recursive=False):
+                    caret_container = soup.new_tag("span", string=f"⠀⠀‣")
+                    li.insert_before(soup.new_tag("br"))
+                    li.insert_before(caret_container)
+                    li.unwrap()
+
+                child.unwrap()
+
+    recurse(soup, 0)
 
 def process_html_tag(soup: BeautifulSoup) -> None:
+    decompose_all_span(soup)
+    decompose_all_em(soup)
+    decompose_all_b(soup)
+    decompose_all_strong(soup)
     decompose_all_blockquote_headers(soup)
     decompose_all_spoiler_headers(soup)
     decompose_all_edited_on_footers(soup)
     strip_image_links_to_avoid_double_links(soup)
     convert_mp4_to_link(soup)
     convert_iframes_to_link(soup)
-    propagate_elements_to_children(soup)
     process_tables(soup)
-    Process_Spoiler(soup)
+    process_nested_lists(soup, 3)
+    process_spoiler(soup)
