@@ -24,7 +24,7 @@ def test_get_response_from_generic_url_500() -> None:
 
 class SlowHandler(BaseHTTPRequestHandler):
     is_called = False
-    def do_GET(self):
+    def do_GET(self) -> None:
         try:
             if(SlowHandler.is_called):
                 self.send_response(200)
@@ -41,7 +41,7 @@ class SlowHandler(BaseHTTPRequestHandler):
         except Exception:
             pass
 
-def run_server(server):
+def run_server(server: HTTPServer) -> None:
     server.serve_forever()
 
 def test_get_response_from_generic_url_timeout() -> None:
@@ -63,7 +63,7 @@ def test_get_response_from_generic_url_timeout() -> None:
         thread.join(timeout=1)
 
 @responses.activate(registry=registries.OrderedRegistry)
-def test_max_retries():
+def test_max_retries() -> None:
     url = "https://example.com"
     rsp1 = responses.get(url, body="Error", status=500)
     rsp3 = responses.get(url, body="Error", status=500)

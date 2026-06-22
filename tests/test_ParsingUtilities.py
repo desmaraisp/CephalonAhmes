@@ -52,4 +52,5 @@ def test_GetLastItemInformation() -> None:
 
     model = src.ParsingUtilities.GetLastItemInformation(rss_contents)
 
+    assert(model is not None)
     assert(model.title == "Cross Platform Play Initial Public Test")
