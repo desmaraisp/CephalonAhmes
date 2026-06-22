@@ -17,7 +17,7 @@ S3_BucketName = "cephalonahmesbucket"
 footer_message = """
 ^(This action was performed automatically, if you see any mistakes, please tag u/desmaraisp, he'll fix them.) [^(Here is my github.)](https://github.com/CephalonAhmes/CephalonAhmes)
 
-^(I have found a new home on AWS Lambda, RIP Heroku free tier.)
+^(It seems like I did an oopsie and missed the post for Update 43 due to an issue reported by BonerElemental. So here's some patch notes for the patch notes bot: added a preprocessor to handle deeply nested lists which Reddit rejects and fixed a few issues with floating spaces sometimes breaking formatting. Sorry about that y'all.)
 """
 XML_Urls=[
 	"https://forums.warframe.com/forum/3-pc-update-notes.xml",
