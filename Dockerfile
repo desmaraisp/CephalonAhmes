@@ -17,7 +17,7 @@ RUN python -m pip install -r requirements-dev.txt && \
 FROM type-check-deps AS type-check
 
 COPY . ./
-ENTRYPOINT [ "python", "-m", "mypy", "src" ]
+ENTRYPOINT [ "python", "-m", "mypy", "." ]
 
 FROM base AS release
 COPY . ./

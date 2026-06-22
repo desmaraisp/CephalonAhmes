@@ -36,7 +36,7 @@ test1 test2
 """
 
 
-    Result = htmlc.strip_heading_or_trailing_tabs_and_spaces_but_keep_newlines(InitialString)
+    Result = htmlc.decompose_all_strong(InitialString)
 
     assert Result== DesiredResult
 
@@ -144,7 +144,7 @@ def test_Process_Spoiler() -> None:
 
     soup = BeautifulSoup(InitialString, 'html.parser')
 
-    htmlc.Process_Spoiler(soup)
+    htmlc.process_spoiler(soup)
 
     assert html.unescape(soup.decode_contents())=="""
 		<span>
@@ -166,7 +166,7 @@ def test_Process_Spoiler2() -> None:
 
     soup = BeautifulSoup(InitialString, 'html.parser')
 
-    htmlc.Process_Spoiler(soup)
+    htmlc.process_spoiler(soup)
 
     assert html.unescape(soup.decode_contents())=="""
 		<span>
