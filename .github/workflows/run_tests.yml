@@ -28,19 +28,10 @@ jobs:
 
     - name: Run Tests
       shell: pwsh
-      env:
-        CEPHALONAHMES_PRAW_CLIENT_ID: ${{ secrets.PRAW_CLIENT_ID }}
-        CEPHALONAHMES_PRAW_CLIENT_SECRET: ${{ secrets.PRAW_CLIENT_SECRET }}
-        CEPHALONAHMES_PRAW_PASSWORD: ${{ secrets.PRAW_PASSWORD }}
-        CEPHALONAHMES_PRAW_USERNAME: ${{ secrets.PRAW_USERNAME }}
       run: |
         docker build . -t pytestimage --target test
 
         docker run `
-          -e CEPHALONAHMES_PRAW_CLIENT_ID=$env:CEPHALONAHMES_PRAW_CLIENT_ID `
-          -e CEPHALONAHMES_PRAW_CLIENT_SECRET=$env:CEPHALONAHMES_PRAW_CLIENT_SECRET `
-          -e CEPHALONAHMES_PRAW_PASSWORD=$env:CEPHALONAHMES_PRAW_PASSWORD `
-          -e CEPHALONAHMES_PRAW_USERNAME=$env:CEPHALONAHMES_PRAW_USERNAME `
           --name pytestcontainer pytestimage
 
         echo "Tests completed"
