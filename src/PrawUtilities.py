@@ -1,3 +1,4 @@
+import os
 from typing import Union
 import praw, praw.models
 from src import (
@@ -21,7 +22,6 @@ class PrawUtilities:
                 validate_on_submit=True,
                 check_for_async=False,
         )
-        bot_login.validate_on_submit = True
         return bot_login
 
 
@@ -66,10 +66,10 @@ class PrawUtilities:
                 submission_contents, 40000, ['\n\n', '\n'])
 
         submission : praw.models.Submission = bot_login.subreddit(DestinationSubreddit).submit(
-                submission_title,
-                selftext=content_before_limit.strip(),
-                flair_id=news_flair_id,
-                send_replies=False
+            submission_title,
+            selftext=content_before_limit.strip(),
+            flair_id=news_flair_id,
+            send_replies=False
         )
 
         if(self.settings.Notify):
@@ -77,10 +77,15 @@ class PrawUtilities:
                     subject= submission_title, message=submission.url
                 )
 
-        comment: praw.models.Comment | praw.models.Message | None
+        comment: praw.models.Comment | praw.models.Message | None = None
         while content_after_limit:
             content_before_limit, content_after_limit = SMS.split_string_on_last_separator_before_cutoff_length(
-                    content_after_limit, 10000, ['\n\n', '\n'])
-            comment = submission.reply(body=content_before_limit.strip())
-            if isinstance(comment, praw.models.Comment):
-                comment.disable_inbox_replies()
+                content_after_limit,
+                10000,
+                ['\n\n', '\n']
+            )
+            
+            if(not comment):
+                comment = submission.reply(body=content_before_limit)
+            else:
+                comment = comment.reply(body=content_before_limit)
