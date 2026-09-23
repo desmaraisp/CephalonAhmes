@@ -1,7 +1,7 @@
 praw==8.0.3
 beautifulsoup4==4.14.3
 boto3==1.43.1
-requests==2.33.1
+requests==2.34.2
 dataclass-wizard==0.39.1
 typed-settings==25.3.0
 awslambdaric==4.0.0
