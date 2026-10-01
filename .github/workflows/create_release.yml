@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6
-    - uses: aws-actions/setup-sam@f84ec7d548307efafe33230528756de3c5841a17
+    - uses: actions/checkout@v7
+    - uses: aws-actions/setup-sam@89ddb14d60e682855e3fea4be85b3c56485de310
 
     - name: Run mypy linter
       shell: pwsh
@@ -51,13 +51,13 @@ jobs:
         docker cp pytestcontainer:/app/coverage.xml ./coverage.xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
       with:
         token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
 
-    - uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37
+    - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd
       with:
         role-to-assume: arn:aws:iam::742387416778:role/CephalonAhmesGithubTrustPolicy
         aws-region: us-east-1
